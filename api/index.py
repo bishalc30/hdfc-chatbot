@@ -94,7 +94,8 @@ def ask(req: AskRequest):
     return body
 
 
-# Local development only: serve the static page from public/ (Vercel serves it itself).
-if not os.getenv("VERCEL") and (ROOT / "public").exists():
+# Serve the page (public/index.html) from the app itself, on Vercel and locally.
+# Registered after the /api routes, so those take precedence.
+if (ROOT / "public").exists():
     from fastapi.staticfiles import StaticFiles
     app.mount("/", StaticFiles(directory=ROOT / "public", html=True), name="static")

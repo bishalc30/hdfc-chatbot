@@ -1,7 +1,7 @@
 # Full local setup: ingestion pipeline (scrape -> ... -> index -> export), Streamlit app, tests.
 -r requirements.txt
-httpx==0.28.1
 beautifulsoup4==4.15.0
+tokenizers==0.23.3
 lxml==6.1.3
 sentence-transformers==6.2.0
 torch==2.15.0

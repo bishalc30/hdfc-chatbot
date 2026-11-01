@@ -16,9 +16,9 @@ Thumbs.db
 # Local install log
 pip_install.log
 
-# Serving export + ONNX model (uploaded to Vercel by `vercel deploy`, never to GitHub)
-serving/
-models/
+# Serving export (serving/: index, vectors, links, manifest) and the ONNX model
+# (models/: model.onnx + tokenizer.json with the vocab) ARE committed, so Vercel's
+# Git deploys can answer questions. Regenerate with: python -m src.pipeline export
 .vercel/
 
 # All pipeline data stays local (scraped pages, cleaned docs, chunks, embeddings,

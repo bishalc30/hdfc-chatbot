@@ -1,0 +1,8 @@
+{
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "dim": 384,
+  "count": 87,
+  "source_collection": "hdfc_mf_faq",
+  "onnx_min_cosine": 1.0,
+  "exported_at": "2026-11-01T15:42:24+05:30"
+}

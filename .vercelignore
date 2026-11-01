@@ -1,6 +1,7 @@
-# Uploaded by `vercel deploy`: api/, public/, src/, config.yaml, requirements.txt,
-# vercel.json, serving/ (exported index) and models/ (ONNX model).
-# Everything below stays on this machine.
+# Deployed to Vercel: api/ (FastAPI entrypoint api/index.py), public/, src/, config.yaml,
+# requirements.txt, pyproject.toml, vercel.json, serving/ (exported index + vectors)
+# and models/ (ONNX model + tokenizer/vocab).
+# Everything below is excluded - including all raw and cleaned pipeline data in data/.
 .env
 .env.*
 .venv/

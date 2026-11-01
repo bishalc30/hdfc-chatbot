@@ -1,0 +1,21 @@
+{
+  "schemes": {
+    "HDFC ELSS Tax Saver Fund": {
+      "page": "https://groww.in/mutual-funds/hdfc-elss-tax-saver-fund-direct-plan-growth",
+      "factsheet": "https://www.hdfcfund.com"
+    },
+    "HDFC Flexi Cap Fund": {
+      "page": "https://groww.in/mutual-funds/hdfc-equity-fund-direct-growth",
+      "factsheet": "https://www.hdfcfund.com"
+    },
+    "HDFC Large Cap Fund": {
+      "page": "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth",
+      "factsheet": "https://www.hdfcfund.com"
+    },
+    "HDFC Mid Cap Fund": {
+      "page": "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth",
+      "factsheet": "https://www.hdfcfund.com"
+    }
+  },
+  "amc": "https://groww.in/mutual-funds/amc/hdfc-mutual-funds"
+}

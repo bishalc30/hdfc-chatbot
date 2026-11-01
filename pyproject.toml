@@ -1,0 +1,21 @@
+[project]
+name = "hdfc-mf-facts-assistant"
+version = "0.1.0"
+description = "Facts-only RAG assistant for HDFC Mutual Fund schemes"
+requires-python = ">=3.12"
+# Serving dependencies - keep in sync with requirements.txt (see comments there).
+dependencies = [
+    "fastapi==0.162.0",
+    "httpx==0.28.1",
+    "numpy==2.5.4",
+    "onnxruntime==1.31.1",
+    "PyYAML==6.0.3",
+    "python-dotenv==1.2.4",
+]
+
+# FastAPI entrypoint for Vercel: module:attribute of the ASGI app
+[project.scripts]
+app = "api.index:app"
+
+[tool.vercel]
+entrypoint = "api/index.py"

@@ -1,15 +1,13 @@
 # Serving dependencies (installed by Vercel for api/index.py).
-# No PyTorch / sentence-transformers / chromadb: queries are embedded with the ONNX
-# version of all-MiniLM-L6-v2 and searched against the exported serving index.
-# For the full ingestion pipeline and the Streamlit app, use requirements-pipeline.txt.
+# Kept small for the serverless size limit:
+#   - no PyTorch / sentence-transformers / chromadb: queries are embedded with the ONNX version
+#     of all-MiniLM-L6-v2 and searched against the exported serving index
+#   - no `tokenizers`: src/wordpiece.py is a pure-Python copy of the model's tokenizer
+#   - no provider SDKs: src/llm.py calls Groq / OpenAI / Anthropic / Gemini / Mistral over HTTP
+# For the full ingestion pipeline, Streamlit app and tests, use requirements-pipeline.txt.
 fastapi==0.162.0
+httpx==0.28.1
 numpy==2.5.4
 onnxruntime==1.31.1
-tokenizers==0.23.3
 PyYAML==6.0.3
 python-dotenv==1.2.4
-groq==1.7.0
-openai==3.42.0
-anthropic==2.3.0
-google-genai==2.34.0
-mistralai==3.6.0
