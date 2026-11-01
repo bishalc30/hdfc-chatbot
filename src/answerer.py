@@ -14,6 +14,7 @@ CLI:  python -m src.answerer "What is the exit load of HDFC Mid Cap Fund?"
 """
 import glob
 import json
+import os
 import re
 import sys
 import time
@@ -58,11 +59,14 @@ STATEMENT_Q = re.compile(r"\bstatements?\b|\bcapital[\s-]*gains?\b|\bcas\b", re.
 # ---------------------------------------------------------------- reference links from the loaded docs
 @lru_cache
 def source_links() -> dict:
-    """scheme_name -> {"page": groww url, "factsheet": official link}; plus the AMC page."""
+    """scheme_name -> {"page": groww url, "factsheet": official link}; plus the AMC page.
+    Read from the loaded documents locally, or from serving/links.json on Vercel."""
+    cleaned = [p for p in glob.glob(str(path("data/02_cleaned/*.json"))) if not p.endswith("load_report.json")]
+    exported = path("serving/links.json")
+    if not cleaned and exported.exists():
+        return json.loads(exported.read_text(encoding="utf-8"))
     links = {"schemes": {}, "amc": None}
-    for p in glob.glob(str(path("data/02_cleaned/*.json"))):
-        if p.endswith("load_report.json"):
-            continue
+    for p in cleaned:
         with open(p, encoding="utf-8") as f:
             d = json.load(f)
         if d["source_type"] == "scheme":
@@ -82,11 +86,19 @@ def fmt_date(iso: str | None) -> str | None:
 
 # ---------------------------------------------------------------- logging (no PII ever)
 def write_trace(trace: dict) -> None:
-    log_dir = path("data/06_logs")
-    log_dir.mkdir(parents=True, exist_ok=True)
+    """Save the (PII-free) trace to LOG_DIR (default data/06_logs). On a read-only file
+    system such as Vercel's, fall back to one JSON line on stdout (the function log)."""
     name = f"{datetime.now(IST).strftime('%Y%m%d-%H%M%S')}_{trace['trace_id']}.json"
-    with open(log_dir / name, "w", encoding="utf-8") as f:
-        json.dump(trace, f, indent=2, ensure_ascii=False)
+    try:
+        log_dir = path(os.getenv("LOG_DIR", "data/06_logs"))
+        log_dir.mkdir(parents=True, exist_ok=True)
+        with open(log_dir / name, "w", encoding="utf-8") as f:
+            json.dump(trace, f, indent=2, ensure_ascii=False)
+    except OSError:
+        summary = {k: trace.get(k) for k in ("trace_id", "at", "intent", "event", "pii_types",
+                                              "validation", "latency_ms")}
+        summary["response_intent"] = trace.get("response", {}).get("intent")
+        print(json.dumps(summary, ensure_ascii=False), flush=True)
 
 
 def respond(intent: str, text: str, url: str | None, trace: dict, t0: float,

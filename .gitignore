@@ -16,6 +16,11 @@ Thumbs.db
 # Local install log
 pip_install.log
 
+# Serving export + ONNX model (uploaded to Vercel by `vercel deploy`, never to GitHub)
+serving/
+models/
+.vercel/
+
 # All pipeline data stays local (scraped pages, cleaned docs, chunks, embeddings,
 # vector DB, query logs). Only the empty stage folders are kept.
 # Rebuild with: python -m src.pipeline all

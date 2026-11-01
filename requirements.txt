@@ -1,15 +1,15 @@
-# Pin versions after the first install: pip freeze > requirements.lock
-httpx
-beautifulsoup4
-lxml
-sentence-transformers
-chromadb
-pyyaml
-python-dotenv
-streamlit
-groq
-openai
-anthropic
-google-genai
-mistralai
-pytest
+# Serving dependencies (installed by Vercel for api/index.py).
+# No PyTorch / sentence-transformers / chromadb: queries are embedded with the ONNX
+# version of all-MiniLM-L6-v2 and searched against the exported serving index.
+# For the full ingestion pipeline and the Streamlit app, use requirements-pipeline.txt.
+fastapi==0.162.0
+numpy==2.5.4
+onnxruntime==1.31.1
+tokenizers==0.23.3
+PyYAML==6.0.3
+python-dotenv==1.2.4
+groq==1.7.0
+openai==3.42.0
+anthropic==2.3.0
+google-genai==2.34.0
+mistralai==3.6.0

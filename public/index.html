@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HDFC MF Facts Assistant</title>
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==">
+<style>
+  :root {
+    --green: #1b5e20; --green-dark: #144a18; --green-soft: #e8f5e9; --green-border: #c8e6c9;
+    --bg: #f4f5f7; --card: #ffffff; --border: #e5e7eb; --text: #111827; --text-2: #374151;
+    --muted: #6b7280; --faint: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 48px 16px; }
+  h1 { font-size: 2rem; font-weight: 700; margin: 0 0 .35rem; line-height: 1.2; }
+  .sub { color: var(--muted); font-size: 1rem; margin: 0 0 .9rem; }
+  .pill { display: inline-block; background: var(--green-soft); color: var(--green);
+          border: 1px solid var(--green-border); border-radius: 999px; padding: .2rem .75rem;
+          font-size: .8rem; font-weight: 600; margin-bottom: 1.4rem; }
+  .label { color: var(--muted); font-size: .85rem; font-weight: 600; margin: .2rem 0 .4rem; }
+  .examples { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
+  .example { background: var(--card); color: #1f2937; border: 1px solid var(--border); border-radius: 10px;
+             padding: .65rem 1rem; text-align: left; font: inherit; cursor: pointer; white-space: normal;
+             box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+  .example:hover { border-color: var(--green); color: var(--green); }
+  form { display: flex; gap: .5rem; margin-bottom: .5rem; }
+  input[type=text] { flex: 1; min-width: 0; padding: .6rem .8rem; font: inherit; color: var(--text);
+                     background: var(--card); border: 1px solid #d1d5db; border-radius: 8px; }
+  input[type=text]:focus { outline: 2px solid var(--green-border); border-color: var(--green); }
+  .ask { background: var(--green); color: #fff; border: 1px solid var(--green); border-radius: 8px;
+         padding: 0 1.4rem; font: inherit; font-weight: 600; cursor: pointer; }
+  .ask:hover { background: var(--green-dark); border-color: var(--green-dark); }
+  .ask:disabled { opacity: .6; cursor: wait; }
+  .status { color: var(--muted); font-size: .9rem; min-height: 1.3rem; margin: .3rem 0; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+          padding: 1.1rem 1.25rem; margin: .9rem 0; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+  .card .q { color: var(--muted); font-size: .9rem; margin-bottom: .5rem; }
+  .card .tag { color: #92400e; background: #fef3c7; border-radius: 6px; font-size: .75rem;
+               padding: .1rem .5rem; display: inline-block; margin-bottom: .5rem; }
+  .card .a { font-size: 1rem; line-height: 1.55; white-space: pre-line; }
+  .card .src { margin-top: .7rem; font-size: .9rem; color: var(--text-2); word-break: break-all; }
+  .card .src a { color: var(--green); }
+  .card .upd { color: var(--faint); font-size: .8rem; margin-top: .25rem; }
+  .clear { background: none; border: none; color: var(--muted); font: inherit; font-size: .9rem;
+           cursor: pointer; padding: 0; }
+  .clear:hover { color: var(--green); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0 1rem; }
+  .disclaimer { color: var(--faint); font-size: .78rem; line-height: 1.5; }
+  @media (max-width: 480px) { h1 { font-size: 1.6rem; } main { padding-top: 32px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>HDFC Mutual Fund Facts Assistant</h1>
+  <p class="sub">Ask factual questions about HDFC Mutual Fund schemes — expense ratio, exit load, minimum SIP,
+    lock-in, riskometer, benchmark, fund manager and statements.</p>
+  <span class="pill" id="badge">Facts-only. No investment advice.</span>
+
+  <div class="label">Try an example</div>
+  <div class="examples" id="examples"></div>
+
+  <form id="ask-form" autocomplete="off">
+    <input type="text" id="question" placeholder="Type your question…" maxlength="2000" aria-label="Your question">
+    <button class="ask" id="ask-btn" type="submit">Ask</button>
+  </form>
+  <div class="status" id="status" aria-live="polite"></div>
+
+  <div id="answers"></div>
+  <button class="clear" id="clear" type="button" hidden>Clear answers</button>
+
+  <hr>
+  <div class="disclaimer" id="disclaimer">Facts-only. No investment advice. Answers are drawn from official public
+    sources and may not reflect the latest updates — please verify on the linked page. Mutual fund investments are
+    subject to market risks; read all scheme-related documents carefully.</div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const answers = $("answers"), input = $("question"), btn = $("ask-btn"), status = $("status");
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;          // textContent: never interpret as HTML
+  return e;
+}
+
+function renderCard(r) {
+  const card = el("div", "card");
+  card.appendChild(el("div", "q", r.question));
+  if (r.label) card.appendChild(el("div", "tag", r.label));
+  card.appendChild(el("div", "a", r.text));
+  if (r.url && /^https?:\/\//i.test(r.url)) {
+    const src = el("div", "src");
+    src.appendChild(el("b", null, "Source: "));
+    const a = el("a", null, r.url);
+    a.href = r.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    src.appendChild(a);
+    card.appendChild(src);
+  }
+  if (r.last_updated) card.appendChild(el("div", "upd", "Last updated from sources: " + r.last_updated));
+  answers.prepend(card);                           // newest first
+  $("clear").hidden = false;
+}
+
+async function ask(question) {
+  question = (question || "").trim();
+  if (!question || btn.disabled) return;
+  btn.disabled = true;
+  status.textContent = "Searching official sources…";
+  try {
+    const res = await fetch("/api/ask", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    const r = await res.json();
+    renderCard(r);
+  } catch (e) {
+    renderCard({ question, text: "Sorry, the assistant is unavailable right now. Please try again.",
+                 label: "Error" });
+  } finally {
+    btn.disabled = false;
+    status.textContent = "";
+    input.value = "";
+    input.focus();
+  }
+}
+
+$("ask-form").addEventListener("submit", (e) => { e.preventDefault(); ask(input.value); });
+$("clear").addEventListener("click", () => { answers.replaceChildren(); $("clear").hidden = true; });
+
+fetch("/api/config").then((r) => r.json()).then((cfg) => {
+  const box = $("examples");
+  for (const q of cfg.example_questions || []) {
+    const b = el("button", "example", q);
+    b.type = "button";
+    b.addEventListener("click", () => ask(q));
+    box.appendChild(b);
+  }
+  if (cfg.disclaimer) $("disclaimer").textContent = cfg.disclaimer;
+  if (cfg.badge) $("badge").textContent = cfg.badge;
+}).catch(() => {});
+</script>
+</body>
+</html>

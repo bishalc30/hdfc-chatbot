@@ -1,0 +1,19 @@
+# Uploaded by `vercel deploy`: api/, public/, src/, config.yaml, requirements.txt,
+# vercel.json, serving/ (exported index) and models/ (ONNX model).
+# Everything below stays on this machine.
+.env
+.env.*
+.venv/
+.git/
+.vercel/
+__pycache__/
+*.pyc
+.pytest_cache/
+data/
+docs/
+tests/
+app/
+.streamlit/
+pip_install.log
+requirements-pipeline.txt
+sources.csv

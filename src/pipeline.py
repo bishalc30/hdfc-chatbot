@@ -1,6 +1,6 @@
 """Run each ingestion step on its own:  python -m src.pipeline <step>
 
-Steps: scrape (2) -> load (3) -> chunk (4) -> embed (5) -> index (6), or `all`.
+Steps: scrape (2) -> load (3) -> chunk (4) -> embed (5) -> index (6) -> export (6b, for Vercel), or `all`.
 """
 import argparse
 import importlib
@@ -11,6 +11,7 @@ STEPS = {
     "chunk": "src.chunker",
     "embed": "src.embedder",
     "index": "src.vector_store",
+    "export": "src.export_serving",   # 6b: serving index + ONNX model for Vercel
 }
 
 
