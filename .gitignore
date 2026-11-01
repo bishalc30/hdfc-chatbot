@@ -1,0 +1,24 @@
+# Secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local install log
+pip_install.log
+
+# Raw scraped HTML (third-party page copies; regenerate with `python -m src.pipeline scrape`)
+data/01_raw/*.html
+
+# Per-query logs (kept local; never commit)
+data/06_logs/*
+!data/06_logs/.gitkeep

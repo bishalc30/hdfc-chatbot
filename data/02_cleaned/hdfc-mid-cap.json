@@ -1,0 +1,37 @@
+{
+  "slug": "hdfc-mid-cap",
+  "url": "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth",
+  "source_type": "scheme",
+  "scheme_name": "HDFC Mid Cap Fund",
+  "fetched_at": "2026-11-01T14:16:11+05:30",
+  "parser": "groww_next_data",
+  "fields": {
+    "scheme_full_name": "HDFC Mid Cap Fund Direct Growth",
+    "fund_house": "HDFC Mutual Fund",
+    "category": "Equity – Mid Cap",
+    "plan": "Direct Plan Growth",
+    "expense_ratio": "0.74%",
+    "exit_load": "Exit load of 1% if redeemed within 1 year.",
+    "min_sip": "₹100",
+    "min_lumpsum": "₹100",
+    "min_additional_investment": "₹100",
+    "lock_in": "No lock-in period",
+    "riskometer": "Very High",
+    "benchmark": "NIFTY Midcap 150 Total Return Index",
+    "fund_size_aum": "₹101,856.06 Cr",
+    "fund_manager": "Chirag Setalvad, Dhruv Muchhal",
+    "launch_date": "01-Jan-2013",
+    "registrar": "Cams",
+    "stamp_duty": "0.005% (from July 1st, 2020)"
+  },
+  "sections": [
+    {
+      "heading": "About HDFC Mid Cap Fund Direct Growth",
+      "text": "The scheme seeks to provide long-term capital appreciation/income by investing predominantly in Mid-Cap companies."
+    }
+  ],
+  "official_links": {
+    "sid": "https://www.hdfcfund.com",
+    "amc_page": "https://groww.in/mutual-funds/amc/hdfc-mutual-funds"
+  }
+}

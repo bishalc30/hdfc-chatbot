@@ -1,0 +1,32 @@
+{
+  "total_chunks": 87,
+  "by_chunk_type": {
+    "fact": 76,
+    "section": 7,
+    "summary": 4
+  },
+  "by_source": {
+    "hdfc-amc": 11,
+    "hdfc-elss": 19,
+    "hdfc-flexi-cap": 19,
+    "hdfc-large-cap": 19,
+    "hdfc-mid-cap": 19
+  },
+  "tokens": {
+    "min": 16,
+    "max": 218,
+    "mean": 32.3
+  },
+  "token_histogram": {
+    "0-32": 73,
+    "33-64": 7,
+    "65-128": 4,
+    "129-192": 2,
+    "193-256": 1
+  },
+  "settings": {
+    "max_tokens": 250,
+    "overlap_tokens": 30,
+    "model_limit": 256
+  }
+}

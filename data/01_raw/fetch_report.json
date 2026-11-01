@@ -1,0 +1,35 @@
+{
+  "run_at": "2026-11-01T14:16:13+05:30",
+  "sources": [
+    {
+      "slug": "hdfc-amc",
+      "url": "https://groww.in/mutual-funds/amc/hdfc-mutual-funds",
+      "result": "fetched",
+      "bytes": 249593
+    },
+    {
+      "slug": "hdfc-large-cap",
+      "url": "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth",
+      "result": "fetched",
+      "bytes": 459953
+    },
+    {
+      "slug": "hdfc-flexi-cap",
+      "url": "https://groww.in/mutual-funds/hdfc-equity-fund-direct-growth",
+      "result": "fetched",
+      "bytes": 500723
+    },
+    {
+      "slug": "hdfc-elss",
+      "url": "https://groww.in/mutual-funds/hdfc-elss-tax-saver-fund-direct-plan-growth",
+      "result": "fetched",
+      "bytes": 458094
+    },
+    {
+      "slug": "hdfc-mid-cap",
+      "url": "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth",
+      "result": "fetched",
+      "bytes": 496243
+    }
+  ]
+}

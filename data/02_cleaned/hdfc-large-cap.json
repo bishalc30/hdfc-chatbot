@@ -1,0 +1,37 @@
+{
+  "slug": "hdfc-large-cap",
+  "url": "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth",
+  "source_type": "scheme",
+  "scheme_name": "HDFC Large Cap Fund",
+  "fetched_at": "2026-11-01T14:16:06+05:30",
+  "parser": "groww_next_data",
+  "fields": {
+    "scheme_full_name": "HDFC Large Cap Fund Direct Growth",
+    "fund_house": "HDFC Mutual Fund",
+    "category": "Equity – Large Cap",
+    "plan": "Direct Plan Growth",
+    "expense_ratio": "1.02%",
+    "exit_load": "Exit load of 1% if redeemed within 1 year",
+    "min_sip": "₹100",
+    "min_lumpsum": "₹100",
+    "min_additional_investment": "₹100",
+    "lock_in": "No lock-in period",
+    "riskometer": "Very High",
+    "benchmark": "NIFTY 100 Total Return Index",
+    "fund_size_aum": "₹37,293.95 Cr",
+    "fund_manager": "Rahul Baijal, Dhruv Muchhal",
+    "launch_date": "01-Jan-2013",
+    "registrar": "Cams",
+    "stamp_duty": "0.005% (from July 1st, 2020)"
+  },
+  "sections": [
+    {
+      "heading": "About HDFC Large Cap Fund Direct Growth",
+      "text": "The scheme seeks to provide long-term capital appreciation/income by investing predominantly in Large-Cap companies."
+    }
+  ],
+  "official_links": {
+    "sid": "https://www.hdfcfund.com",
+    "amc_page": "https://groww.in/mutual-funds/amc/hdfc-mutual-funds"
+  }
+}

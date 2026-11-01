@@ -1,0 +1,15 @@
+# Pin versions after the first install: pip freeze > requirements.lock
+httpx
+beautifulsoup4
+lxml
+sentence-transformers
+chromadb
+pyyaml
+python-dotenv
+streamlit
+groq
+openai
+anthropic
+google-genai
+mistralai
+pytest

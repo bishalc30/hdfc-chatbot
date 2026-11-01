@@ -1,0 +1,13 @@
+[theme]
+base = "light"
+primaryColor = "#1b5e20"
+backgroundColor = "#f4f5f7"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#111827"
+
+[client]
+toolbarMode = "minimal"
+showSidebarNavigation = false
+
+[browser]
+gatherUsageStats = false

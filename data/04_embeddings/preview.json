@@ -1,0 +1,72 @@
+[
+  {
+    "chunk_id": "f1db26ef7775dc45",
+    "text": "HDFC Mutual Fund — Fund house (AMC): HDFC Mutual Fund.",
+    "vector_first_8": [
+      0.0335,
+      -0.0786,
+      -0.1128,
+      0.0385,
+      0.0819,
+      0.0481,
+      0.0409,
+      -0.0003
+    ]
+  },
+  {
+    "chunk_id": "dca7b1a89b76939d",
+    "text": "HDFC Mutual Fund — Incorporation date: 1999-12-10.",
+    "vector_first_8": [
+      0.0181,
+      -0.0829,
+      -0.0697,
+      0.0377,
+      0.078,
+      0.0745,
+      -0.0054,
+      0.0284
+    ]
+  },
+  {
+    "chunk_id": "e50023d489d64775",
+    "text": "HDFC Mutual Fund — Sponsor: HDFC Ltd., Abrdn Investment Management Limited (AIML) erstwhile (Standard Life Investments).",
+    "vector_first_8": [
+      0.0221,
+      -0.0552,
+      -0.0695,
+      0.05,
+      0.1109,
+      0.0204,
+      0.0606,
+      0.0198
+    ]
+  },
+  {
+    "chunk_id": "5b7841f1951cfe4e",
+    "text": "HDFC Mutual Fund — Trustee organisation: HDFC Trustee Company Ltd.",
+    "vector_first_8": [
+      0.0445,
+      -0.0854,
+      -0.0987,
+      0.0215,
+      0.0848,
+      0.0121,
+      0.0244,
+      -0.016
+    ]
+  },
+  {
+    "chunk_id": "eff9085f6714f9ac",
+    "text": "HDFC Mutual Fund — Chief Executive Officer: Navneet Munot(Chief Executive Officer).",
+    "vector_first_8": [
+      0.01,
+      -0.0472,
+      0.0114,
+      0.0347,
+      0.0838,
+      0.0015,
+      0.0644,
+      0.0152
+    ]
+  }
+]

@@ -1,0 +1,46 @@
+# Changeable, non-secret settings. Secrets and the LLM choice live in .env.
+
+scraping:
+  user_agent: "MF-FAQ-RAG-Demo/1.0 (educational project)"
+  delay_s: 1.5           # pause between requests
+  timeout_s: 20
+  retries: 2
+  respect_robots: true
+
+embedding:
+  model_name: sentence-transformers/all-MiniLM-L6-v2   # must be the same for ingestion and retrieval
+  batch_size: 64
+
+vector_db:
+  provider: chromadb
+  persist_dir: data/05_vectordb
+  collection: hdfc_mf_faq
+
+chunking:
+  max_tokens: 250        # MiniLM reads at most 256 tokens
+  overlap_tokens: 30
+
+retrieval:
+  top_k: 4
+  similarity_threshold: 0.35   # tune in step 7
+
+generation:
+  max_sentences: 3
+  temperature: 0.0
+  max_tokens: 1024       # room for reasoning models (<think> is stripped); answer is trimmed to max_sentences
+  timeout_s: 30
+  retries: 2
+
+guardrails:
+  max_input_chars: 500
+
+links:
+  education: https://www.amfiindia.com/investor        # AMFI Investor Corner (used in refusals)
+  statements_help: https://www.camsonline.com/Investors/Statements/Consolidated-Account-Statement
+
+ui:
+  show_debug: false      # true = show the "Show pipeline" panel and the sidebar's RAG pipeline section
+  example_questions:
+    - "What is the expense ratio of HDFC Mid Cap Fund?"
+    - "What is the lock-in period of HDFC ELSS Tax Saver?"
+    - "How do I download my capital-gains statement?"
