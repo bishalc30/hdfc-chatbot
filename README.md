@@ -22,6 +22,8 @@ See `docs/PRD.md`, `docs/architecture.md` and `docs/implementation.md`.
 
 ## Pipeline steps
 
+The `data/` folders are not included in the repository. Build them locally before starting the app:
+
 ```powershell
 python -m src.pipeline scrape   # step 2: fetch pages      -> data/01_raw  (add --force to re-save unchanged pages)
 python -m src.pipeline load     # step 3: parse + clean    -> data/02_cleaned
