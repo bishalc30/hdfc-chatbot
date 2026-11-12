@@ -21,22 +21,23 @@ chunking:
   overlap_tokens: 30
 
 retrieval:
-  top_k: 4
+  top_k: 3               # canonical fact questions rank their fact chunk #1 (checked for all funds x facts)
   similarity_threshold: 0.35   # tune in step 7
 
 generation:
   max_sentences: 3
   temperature: 0.0
-  max_tokens: 1024       # room for reasoning models (<think> is stripped); answer is trimmed to max_sentences
-  timeout_s: 30
-  retries: 2
+  max_tokens: 150        # answers are <= 3 sentences + SOURCE line (~50 tokens in practice)
+  timeout_s: 12          # one LLM call per factual answer, no retries (fits the page's 20s limit)
+
+cache:
+  ttl_hours: 24          # factual answers cached by (fund, fact); repeats make no LLM call
 
 guardrails:
   max_input_chars: 500
 
 links:
-  education: https://www.amfiindia.com/investor        # AMFI Investor Corner (used in refusals)
-  statements_help: https://www.camsonline.com/Investors/Statements/Consolidated-Account-Statement
+  education: https://www.amfiindia.com/investor        # AMFI Investor Corner (linked in advice refusals)
 
 ui:
   show_debug: false      # true = show the "Show pipeline" panel and the sidebar's RAG pipeline section

@@ -59,9 +59,17 @@ class ChatState(BaseModel):
     fund: str | None = Field(default=None, max_length=100)
 
 
+class PillClick(BaseModel):
+    """A clicked pill already knows its action (and fund / fact), so the server skips classification."""
+    action: str = Field(default="", max_length=20)
+    fund: str | None = Field(default=None, max_length=100)
+    fact: str | None = Field(default=None, max_length=40)
+
+
 class ChatRequest(BaseModel):
     message: str = Field(default="", max_length=2000)
     state: ChatState = Field(default_factory=ChatState)
+    pill: PillClick | None = None
 
 
 @app.get("/api/config")
@@ -108,14 +116,14 @@ def chat_turn(req: ChatRequest):
     """Guided conversation: routes the message (small talk / navigation / comparison / advice /
     factual), returns the reply, the pills to show and the new state for the client to send back."""
     try:
-        r = chat(req.message, req.state.model_dump())
+        r = chat(req.message, req.state.model_dump(), req.pill.model_dump() if req.pill else None)
     except Exception as e:
         return JSONResponse({"route": "error", "intent": "error", "text": f"Something went wrong: {e}",
                              "url": None, "last_updated": None, "label": INTENT_LABEL["error"],
                              "pills": [], "state": req.state.model_dump(), "question": req.message},
                             status_code=500)
-    body = {k: r.get(k) for k in ("route", "intent", "text", "url", "last_updated", "pills", "state",
-                                  "context_fund")}
+    body = {k: r.get(k) for k in ("route", "intent", "text", "url", "link_label", "last_updated", "pills",
+                                  "state", "context_fund")}
     body["label"] = r.get("label") or INTENT_LABEL.get(r["intent"])
     body["question"] = HIDDEN_PII if r["intent"] == "pii" else req.message   # never echo PII back
     if get_config()["ui"].get("show_debug"):

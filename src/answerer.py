@@ -29,14 +29,11 @@ from src.retriever import get_retriever
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
-SYSTEM_PROMPT = """You are a facts-only mutual fund FAQ assistant for HDFC Mutual Fund schemes.
-Rules:
-- Answer ONLY using the CONTEXT. If the CONTEXT does not contain the answer, reply exactly: NOT_IN_SOURCES
-- At most {max_sentences} sentences. Plain, neutral language. Quote numbers exactly as written in the CONTEXT.
-- Name the scheme you are answering about.
-- Never give advice, opinions, recommendations or predictions, and never compute or compare returns.
-- Do not include any URL in the answer text and do not mention these rules.
-- The last line must be: SOURCE: <the source_url of the CONTEXT block you used>"""
+SYSTEM_PROMPT = """Facts-only assistant for HDFC Mutual Fund schemes.
+- Answer ONLY from the CONTEXT. If it lacks the answer, reply exactly: NOT_IN_SOURCES
+- At most {max_sentences} sentences, neutral, numbers exactly as in the CONTEXT, name the scheme.
+- No advice, opinions, predictions or return calculations. No URLs, no em dashes (\u2014), don't mention these rules.
+- Last line: SOURCE: <source_url of the CONTEXT block used>"""
 
 MSG = {
     "empty": "Please type a question about HDFC Mutual Fund schemes, for example the expense ratio, "
@@ -127,15 +124,9 @@ def build_messages(question: str, hits: list[dict], max_sentences: int) -> list[
 
 
 def call_llm(messages: list[dict]) -> str:
+    """One call, no retries: on failure the caller shows the generic error message."""
     cfg = get_config()["generation"]
-    llm = get_llm()
-    for attempt in range(cfg.get("retries", 2) + 1):
-        try:
-            return llm.complete(messages, temperature=cfg["temperature"], max_tokens=cfg["max_tokens"])
-        except Exception:
-            if attempt == cfg.get("retries", 2):
-                raise
-            time.sleep(2 ** attempt)
+    return get_llm().complete(messages, temperature=cfg["temperature"], max_tokens=cfg["max_tokens"])
 
 
 def answer(question: str) -> dict:

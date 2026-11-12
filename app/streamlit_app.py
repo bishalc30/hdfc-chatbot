@@ -147,7 +147,7 @@ def answer_card(question: str, r: dict) -> str:
     parts.append(f'<div class="answer-text">{esc(r["text"])}</div>')
     if r.get("url"):
         url = html.escape(r["url"], quote=True)
-        parts.append(f'<div class="answer-source"><b>Source:</b> '
+        parts.append(f'<div class="answer-source"><b>{esc(r.get("link_label") or "Source")}:</b> '
                      f'<a href="{url}" target="_blank" rel="noopener">{url}</a></div>')
     if r.get("last_updated"):
         parts.append(f'<div class="answer-updated">Last updated from sources: {esc(r["last_updated"])}</div>')
@@ -256,13 +256,14 @@ if "chat_state" not in st.session_state:
     st.session_state.chat_state = {"fund": None}      # guided flow: the selected fund
 
 
-def queue_pill(message: str) -> None:
+def queue_pill(pill: dict) -> None:
     """Pill callback: runs before the rerun, so the click is handled like a typed question."""
-    st.session_state.pending = message
+    st.session_state.pending = pill      # carries its action / fund / fact (no classification)
 
 
 # landing state: welcome line + example chips, only until the first answer
-clicked = st.session_state.pop("pending", None)
+pending_pill = st.session_state.pop("pending", None)
+clicked = pending_pill["message"] if pending_pill else None
 landing = st.empty()
 if not st.session_state.history:
     with landing.container():
@@ -286,9 +287,9 @@ st.markdown('<div class="note">Facts-only. No investment advice.</div>', unsafe_
 question = typed or clicked
 if question is not None:
     landing.empty()   # hide welcome + examples as soon as a question is asked
-    with st.spinner("Searching official sources…"):
+    with st.spinner("Looking it up..."):
         try:
-            resp = chat(question, st.session_state.chat_state)
+            resp = chat(question, st.session_state.chat_state, pending_pill if question == clicked else None)
             st.session_state.chat_state = resp["state"]
         except Exception as e:
             resp = {"intent": "error", "text": f"Something went wrong: {e}", "url": None,
@@ -306,7 +307,7 @@ for idx in range(last, -1, -1):
         with st.container(key=f"opts_{idx}", horizontal=True, gap="small"):
             for j, p in enumerate(pills):
                 st.button(p["label"], key=f"opt_{idx}_{j}", width="content", disabled=idx != last,
-                          on_click=queue_pill, args=(p["message"],))
+                          on_click=queue_pill, args=(p,))
 
 if st.session_state.history:
     with st.container(key="clear"):
