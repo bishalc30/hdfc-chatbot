@@ -18,3 +18,6 @@ app/
 pip_install.log
 requirements-pipeline.txt
 sources.csv
+
+# Design reference exports (Google Stitch) - local only, never shipped
+design/

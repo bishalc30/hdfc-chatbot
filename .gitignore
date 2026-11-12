@@ -26,3 +26,6 @@ pip_install.log
 # Rebuild with: python -m src.pipeline all
 data/*/*
 !data/*/.gitkeep
+
+# Design reference exports (Google Stitch) - local only
+design/

@@ -2,103 +2,273 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HDFC MF Facts Assistant</title>
 <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==">
+<script>
+  // Theme before first paint: saved choice, otherwise the system setting (CSS media query).
+  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* ============================================================ design tokens (design/…/DESIGN.md) */
   :root {
-    --green: #1b5e20; --green-dark: #144a18; --green-soft: #e8f5e9; --green-border: #c8e6c9;
-    --bg: #f4f5f7; --card: #ffffff; --border: #e5e7eb; --text: #111827; --text-2: #374151;
-    --muted: #6b7280; --faint: #9ca3af;
+    color-scheme: light;
+    /* colour */
+    --canvas: #ffffff;           /* page base */
+    --surface: #ffffff;          /* input, pills */
+    --surface-2: #f4f4f5;        /* user bubble, subtle fills */
+    --fg: #18181b;               /* neutral foreground */
+    --fg-2: #27272a;             /* chip text */
+    --muted: #71717a;            /* labels, metadata, footnotes */
+    --border: #e4e4e7;           /* hairline */
+    --border-hover: #d4d4d8;
+    --disabled: #a1a1aa;
+    --accent: #7c3aed;           /* sparkle, focus, selected chip, send */
+    --accent-text: #6d28d9;
+    --accent-soft: #ede9fe;
+    --on-accent: #ffffff;
+    --tag-bg: #f4f4f5;
+    --tag-fg: #52525b;
+    --bar-bg: rgba(255, 255, 255, .72);
+    --halo-violet: rgba(167, 139, 250, .50);
+    --halo-pink: rgba(244, 114, 182, .30);
+    --shadow-float: 0 4px 16px -2px rgba(24, 24, 27, .06), 0 1px 2px 0 rgba(24, 24, 27, .03);
+    /* type */
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --headline-md: 600 22px/28px var(--font);
+    --headline-lg-m: 600 26px/34px var(--font);
+    --body-md: 400 15px/24px var(--font);
+    --body-sm: 400 13px/20px var(--font);
+    --label-md: 500 14px/20px var(--font);
+    --label-sm: 500 12px/16px var(--font);
+    --caption: 400 11px/14px var(--font);
+    /* shape */
+    --r-sm: .25rem; --r: .5rem; --r-md: .75rem; --r-lg: 1rem; --r-xl: 1.5rem; --r-full: 9999px;
+    /* spacing */
+    --s-xs: .25rem; --s-sm: .5rem; --s-md: 1rem; --s-lg: 1.5rem; --s-xl: 2.5rem;
+    /* layout */
+    --col: 720px; --bar-h: 56px; --gutter: 1rem;
   }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --canvas: #0b1020; --surface: #151b2e; --surface-2: #1e263b;
+    --fg: #f4f4f5; --fg-2: #e4e4e7; --muted: #a1a1aa;
+    --border: #2a3349; --border-hover: #3b4663; --disabled: #52525b;
+    --accent: #8b5cf6; --accent-text: #c4b5fd; --accent-soft: rgba(139, 92, 246, .18); --on-accent: #ffffff;
+    --tag-bg: rgba(255, 255, 255, .07); --tag-fg: #d4d4d8;
+    --bar-bg: rgba(11, 16, 32, .72);
+    --halo-violet: rgba(124, 58, 237, .55); --halo-pink: rgba(219, 39, 119, .30);
+    --shadow-float: 0 4px 16px -2px rgba(0, 0, 0, .35), 0 1px 2px 0 rgba(0, 0, 0, .2);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --canvas: #0b1020; --surface: #151b2e; --surface-2: #1e263b;
+      --fg: #f4f4f5; --fg-2: #e4e4e7; --muted: #a1a1aa;
+      --border: #2a3349; --border-hover: #3b4663; --disabled: #52525b;
+      --accent: #8b5cf6; --accent-text: #c4b5fd; --accent-soft: rgba(139, 92, 246, .18); --on-accent: #ffffff;
+      --tag-bg: rgba(255, 255, 255, .07); --tag-fg: #d4d4d8;
+      --bar-bg: rgba(11, 16, 32, .72);
+      --halo-violet: rgba(124, 58, 237, .55); --halo-pink: rgba(219, 39, 119, .30);
+      --shadow-float: 0 4px 16px -2px rgba(0, 0, 0, .35), 0 1px 2px 0 rgba(0, 0, 0, .2);
+    }
+  }
+  @media (min-width: 768px) { :root { --gutter: 1.5rem; } }
+
+  /* ============================================================ base */
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  main { max-width: 900px; margin: 0 auto; padding: 48px 16px; }
-  h1 { font-size: 2rem; font-weight: 700; margin: 0 0 .35rem; line-height: 1.2; }
-  .sub { color: var(--muted); font-size: 1rem; margin: 0 0 .9rem; }
-  .pill { display: inline-block; background: var(--green-soft); color: var(--green);
-          border: 1px solid var(--green-border); border-radius: 999px; padding: .2rem .75rem;
-          font-size: .8rem; font-weight: 600; margin-bottom: 1.4rem; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--canvas); color: var(--fg); font: var(--body-md);
+         -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
   [hidden] { display: none !important; }
-  /* landing state: welcome line + example chips (hidden once the first answer appears) */
-  .welcome { text-align: center; color: var(--text-2); font-size: 1.05rem; font-weight: 600; margin: .4rem 0 .8rem; }
-  .examples { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin-bottom: 1.1rem; }
-  .example { background: var(--card); color: #1f2937; border: 1px solid var(--border); border-radius: 10px;
-             padding: .5rem .9rem; font: inherit; font-size: .92rem; line-height: 1.35; text-align: center;
-             cursor: pointer; white-space: normal; max-width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
-  .example:hover { border-color: var(--green); color: var(--green); }
-  .example:disabled { opacity: .6; cursor: wait; }
-  form { display: flex; gap: .5rem; margin-bottom: .3rem; }
-  input[type=text] { flex: 1; min-width: 0; padding: .6rem .8rem; font: inherit; color: var(--text);
-                     background: var(--card); border: 1px solid #d1d5db; border-radius: 8px; }
-  input[type=text]:focus { outline: 2px solid var(--green-border); border-color: var(--green); }
-  .ask { background: var(--green); color: #fff; border: 1px solid var(--green); border-radius: 8px;
-         padding: 0 1.4rem; font: inherit; font-weight: 600; cursor: pointer; }
-  .ask:hover { background: var(--green-dark); border-color: var(--green-dark); }
-  .ask:disabled { opacity: .6; cursor: wait; }
-  .note { color: var(--faint); font-size: .8rem; margin: 0 0 .2rem; }
-  .status { color: var(--muted); font-size: .9rem; min-height: 1.3rem; margin: .3rem 0; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-          padding: 1.1rem 1.25rem; margin: .9rem 0; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
-  .card .q { color: var(--muted); font-size: .9rem; margin-bottom: .5rem; }
-  .card .tag { color: #92400e; background: #fef3c7; border-radius: 6px; font-size: .75rem;
-               padding: .1rem .5rem; display: inline-block; margin-bottom: .5rem; }
-  .card .a { font-size: 1rem; line-height: 1.55; white-space: pre-line; }
-  .card .src { margin-top: .7rem; font-size: .9rem; color: var(--text-2); word-break: break-all; }
-  .card .src a { color: var(--green); }
-  .card .upd { color: var(--faint); font-size: .8rem; margin-top: .25rem; }
-  .card .ctx { color: var(--faint); }
-  /* guided-flow pills inside a reply card: wrap on narrow screens; old cards' pills are disabled */
-  .opts { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .85rem; }
-  .opt { background: var(--card); color: var(--green); border: 1px solid var(--green-border); border-radius: 999px;
-         padding: .38rem .85rem; font: inherit; font-size: .88rem; line-height: 1.3; cursor: pointer;
-         white-space: normal; max-width: 100%; text-align: center; }
-  .opt:hover:not(:disabled) { background: var(--green-soft); border-color: var(--green); }
-  .opt.secondary { color: var(--muted); border-color: var(--border); }
-  .opt.secondary:hover:not(:disabled) { color: var(--green); background: var(--card); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  svg { display: block; flex: none; }
+
+  /* one fixed full-viewport background: halo rising from the bottom centre, gone by mid-screen */
+  .bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background:
+          radial-gradient(60% 46% at 50% 108%, var(--halo-violet), transparent 72%),
+          radial-gradient(85% 55% at 50% 112%, var(--halo-pink), transparent 70%),
+          var(--canvas); }
+
+  /* ============================================================ top bar */
+  .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; height: var(--bar-h);
+            background: var(--bar-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border); }
+  .topbar-in { max-width: calc(var(--col) + 2 * var(--gutter)); height: 100%; margin: 0 auto;
+               padding: 0 var(--gutter); display: flex; align-items: center; gap: var(--s-sm); }
+  .brand { display: flex; align-items: center; gap: var(--s-sm); font: var(--label-md); font-weight: 600;
+           color: var(--fg); margin-right: auto; }
+  .brand svg { color: var(--accent); }
+  .icon-btn { width: 36px; height: 36px; border: none; background: transparent; border-radius: var(--r-full);
+              display: grid; place-items: center; color: var(--muted); cursor: pointer; }
+  .icon-btn:hover { color: var(--fg); background: var(--surface-2); }
+  .new-btn { display: flex; align-items: center; gap: 6px; font: var(--label-sm); color: var(--fg);
+             background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+             padding: 6px 12px; cursor: pointer; }
+  .new-btn:hover { border-color: var(--border-hover); }
+
+  /* ============================================================ conversation column */
+  main { position: relative; z-index: 1; max-width: calc(var(--col) + 2 * var(--gutter)); margin: 0 auto;
+         padding: calc(var(--bar-h) + var(--s-lg)) var(--gutter) calc(140px + env(safe-area-inset-bottom)); }
+
+  /* empty state */
+  .empty { min-height: calc(100dvh - var(--bar-h) - 180px); display: flex; flex-direction: column;
+           align-items: center; text-align: center; padding-top: 8vh; }
+  .orb { position: relative; width: 56px; height: 56px; margin-bottom: var(--s-lg); }
+  .orb::before { content: ""; position: absolute; inset: -22px; border-radius: 50%;
+                 background: var(--accent-soft); filter: blur(18px); opacity: .9; }
+  .orb-in { position: relative; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+            background: var(--surface); border: 1px solid var(--border); color: var(--accent); }
+  .empty h1 { font: var(--headline-md); letter-spacing: -.01em; margin: 0; max-width: 22ch; }
+  .empty .lede { font: var(--label-md); font-weight: 400; color: var(--muted); margin: var(--s-sm) 0 0; max-width: 40ch; }
+  .suggest { width: 100%; margin-top: auto; padding-top: var(--s-xl); text-align: left; }
+  .suggest-head { display: flex; justify-content: space-between; align-items: center; margin: 0 4px var(--s-sm);
+                  font: var(--caption); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  .suggest-list { display: flex; flex-direction: column; gap: var(--s-sm); }
+  .suggestion { display: flex; align-items: center; gap: var(--s-md); width: 100%; text-align: left; cursor: pointer;
+                background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+                padding: 12px 14px; font: var(--body-sm); font-size: 14px; color: var(--fg); }
+  .suggestion:hover { border-color: var(--border-hover); }
+  .suggestion:disabled { opacity: .6; cursor: wait; }
+  .suggestion .ico { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-2); color: var(--muted);
+                     display: grid; place-items: center; flex: none; }
+  .suggestion .txt { flex: 1; min-width: 0; }
+  .suggestion .go { color: var(--muted); }
+  .fineprint { font: var(--caption); color: var(--muted); margin: var(--s-lg) 4px 0; text-align: center; opacity: .9; }
+
+  /* turns */
+  #thread { display: flex; flex-direction: column; gap: var(--s-xl); }
+  .turn { display: flex; flex-direction: column; gap: var(--s-lg); }
+  .user { display: flex; justify-content: flex-end; }
+  .bubble { max-width: 85%; background: var(--surface-2); color: var(--fg); font: var(--body-md);
+            padding: 10px 16px; border-radius: var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg);
+            overflow-wrap: anywhere; white-space: pre-wrap; }
+  .bot { display: flex; flex-direction: column; gap: var(--s-sm); }
+  .bot-head { display: flex; align-items: center; gap: var(--s-sm); min-height: 20px; }
+  .bot-head .mark { color: var(--accent); }
+  .tag { display: inline-flex; align-items: center; gap: 4px; font: var(--label-sm); color: var(--tag-fg);
+         background: var(--tag-bg); border: 1px solid var(--border); border-radius: var(--r-full); padding: 2px 10px; }
+  .bot-text { font: var(--body-md); line-height: 1.6; white-space: pre-line; font-variant-numeric: tabular-nums;
+              overflow-wrap: anywhere; }
+  .meta { font: var(--body-sm); color: var(--muted); display: flex; flex-direction: column; gap: var(--s-xs); }
+  .meta a { color: var(--accent-text); text-decoration: none; overflow-wrap: anywhere; }
+  .meta a:hover { text-decoration: underline; }
+  .actions { display: flex; gap: var(--s-xs); }
+  .copy { width: 30px; height: 30px; border-radius: var(--r-full); border: 1px solid var(--border);
+          background: var(--surface); color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+  .copy:hover { color: var(--fg); border-color: var(--border-hover); }
+  .copy.done { color: var(--accent); border-color: var(--accent); }
+
+  /* pills: text never wraps inside a pill; pills wrap onto new rows */
+  .opts { display: flex; flex-wrap: wrap; gap: var(--s-sm); margin-top: var(--s-xs); }
+  .opt { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; max-width: 100%;
+         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+         font: var(--label-sm); color: var(--fg-2); background: var(--surface);
+         border: 1px solid var(--border); border-radius: var(--r-full); }
+  .opt span { overflow: hidden; text-overflow: ellipsis; }
+  .opt:hover:not(:disabled) { border-color: var(--border-hover); }
+  .opt.selected { border-color: var(--accent); color: var(--accent-text); }
+  .opt.secondary { background: var(--surface-2); color: var(--muted); }
   .opt:disabled { opacity: .45; cursor: not-allowed; }
-  .clear { background: none; border: none; color: var(--muted); font: inherit; font-size: .9rem;
-           cursor: pointer; padding: 0; }
-  .clear:hover { color: var(--green); }
-  hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0 1rem; }
-  .disclaimer { color: var(--faint); font-size: .78rem; line-height: 1.5; }
-  @media (max-width: 480px) { h1 { font-size: 1.6rem; } main { padding-top: 32px; } }
+
+  /* loading */
+  .loading .bot-head { color: var(--muted); font: var(--body-sm); }
+  .pulse { color: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(.85); opacity: .55; } 50% { transform: scale(1.12); opacity: 1; } }
+  .shimmer { height: 10px; border-radius: var(--r-full); background: linear-gradient(90deg, var(--surface-2) 0%,
+             var(--border) 50%, var(--surface-2) 100%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .pulse, .shimmer { animation: none; } }
+
+  /* ============================================================ input dock (no band: only the field is filled) */
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; pointer-events: none;
+          padding: 0 var(--gutter) calc(var(--s-sm) + env(safe-area-inset-bottom)); }
+  .dock-in { max-width: var(--col); margin: 0 auto; pointer-events: auto; }
+  .field { display: flex; align-items: center; gap: var(--s-sm); background: var(--surface);
+           border: 1px solid var(--border); border-radius: var(--r-xl); padding: 6px 6px 6px 18px;
+           box-shadow: var(--shadow-float); }
+  .field:focus-within { border-color: var(--accent); }
+  .field input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: var(--fg);
+                 font: var(--body-md); padding: 8px 0; }
+  .field input::placeholder { color: var(--muted); }
+  .send { width: 40px; height: 40px; border-radius: 50%; border: none; display: grid; place-items: center;
+          background: var(--accent); color: var(--on-accent); cursor: pointer; }
+  .send:disabled { background: var(--disabled); cursor: default; }
+  .note { font: var(--caption); letter-spacing: .01em; color: var(--muted); text-align: center; margin-top: 6px; }
+
+  @media (min-width: 768px) { .empty h1 { font-size: 26px; line-height: 34px; } }
+  @media (max-width: 767px) {
+    .empty { padding-top: 2vh; min-height: 0; }
+    .orb { margin-bottom: var(--s-md); }
+    .empty .lede { font: var(--body-sm); }
+    .suggest { padding-top: var(--s-lg); }
+    .suggestion { padding: 10px 12px; }
+    .fineprint { margin-top: var(--s-md); }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>HDFC Mutual Fund Facts Assistant</h1>
-  <p class="sub">Ask factual questions about HDFC Mutual Fund schemes — expense ratio, exit load, minimum SIP,
-    lock-in, riskometer, benchmark, fund manager and statements.</p>
-  <span class="pill" id="badge">Facts-only. No investment advice.</span>
+<div class="bg" aria-hidden="true"></div>
 
-  <div id="landing">
-    <p class="welcome" id="welcome">Hi! Ask me quick facts about HDFC Mutual Fund schemes.</p>
-    <div class="examples" id="examples"></div>
+<!-- inline icons (no remote assets) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path fill="currentColor" d="M10 3.5c.4 3.6 2.4 5.6 6 6-3.6.4-5.6 2.4-6 6-.4-3.6-2.4-5.6-6-6 3.6-.4 5.6-2.4 6-6Z"/><path fill="currentColor" d="M18 2c.2 1.8 1.2 2.8 3 3-1.8.2-2.8 1.2-3 3-.2-1.8-1.2-2.8-3-3 1.8-.2 2.8-1.2 3-3ZM17.5 14.5c.2 1.6 1 2.4 2.5 2.5-1.5.2-2.3 1-2.5 2.5-.2-1.5-1-2.3-2.5-2.5 1.5-.1 2.3-.9 2.5-2.5Z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></g></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M7 17 17 7M9 7h8v8"/></symbol>
+  <symbol id="i-q" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5M12 16.5v.01"/></g></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><svg width="20" height="20"><use href="#i-sparkle"/></svg>HDFC MF Facts</div>
+    <button class="icon-btn" id="theme" type="button" aria-label="Switch theme"><svg width="20" height="20"><use id="theme-ico" href="#i-sun"/></svg></button>
+    <button class="new-btn" id="new" type="button"><svg width="14" height="14"><use href="#i-plus"/></svg>New</button>
   </div>
+</header>
 
-  <form id="ask-form" autocomplete="off">
-    <input type="text" id="question" placeholder="Type your question…" maxlength="2000" aria-label="Your question">
-    <button class="ask" id="ask-btn" type="submit">Ask</button>
-  </form>
-  <div class="note">Facts-only. No investment advice.</div>
-  <div class="status" id="status" aria-live="polite"></div>
-
-  <div id="answers"></div>
-  <button class="clear" id="clear" type="button" hidden>Clear answers</button>
-
-  <hr>
-  <div class="disclaimer" id="disclaimer">Facts-only. No investment advice. Answers are drawn from official public
-    sources and may not reflect the latest updates — please verify on the linked page. Mutual fund investments are
-    subject to market risks; read all scheme-related documents carefully.</div>
+<main>
+  <section class="empty" id="empty">
+    <div class="orb"><div class="orb-in"><svg width="26" height="26"><use href="#i-sparkle"/></svg></div></div>
+    <h1 id="welcome">Hi! Ask me quick facts about HDFC Mutual Fund schemes.</h1>
+    <p class="lede">Expense ratio, exit load, minimum SIP, lock-in, riskometer and benchmark — from official public sources.</p>
+    <div class="suggest">
+      <div class="suggest-head"><span>Suggestions</span><span>Tap to ask</span></div>
+      <div class="suggest-list" id="examples"></div>
+      <p class="fineprint" id="disclaimer">Facts-only. No investment advice. Answers are drawn from official public
+        sources and may not reflect the latest updates — please verify on the linked page. Mutual fund investments are
+        subject to market risks; read all scheme-related documents carefully.</p>
+    </div>
+  </section>
+  <div id="thread" aria-live="polite"></div>
 </main>
+
+<div class="dock">
+  <div class="dock-in">
+    <form class="field" id="ask-form" autocomplete="off">
+      <input type="text" id="question" placeholder="Ask a fact about a fund…" maxlength="2000" aria-label="Your question">
+      <button class="send" id="ask-btn" type="submit" aria-label="Send" disabled><svg width="20" height="20"><use href="#i-up"/></svg></button>
+    </form>
+    <div class="note">Facts-only. No investment advice.</div>
+  </div>
+</div>
 
 <script>
 const $ = (id) => document.getElementById(id);
-const answers = $("answers"), input = $("question"), btn = $("ask-btn"), status = $("status");
+const thread = $("thread"), input = $("question"), btn = $("ask-btn");
 let state = { fund: null };     // guided-flow state (selected fund); the server is stateless
 let lastPills = [];
+let busy = false;
+const TAGS = { not_available: "Not in sources", advice: "Facts only" };
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -106,52 +276,124 @@ function el(tag, cls, text) {
   if (text != null) e.textContent = text;          // textContent: never interpret as HTML
   return e;
 }
+function icon(id, size) {
+  const ns = "http://www.w3.org/2000/svg", s = document.createElementNS(ns, "svg"), u = document.createElementNS(ns, "use");
+  s.setAttribute("width", size); s.setAttribute("height", size); s.setAttribute("aria-hidden", "true");
+  u.setAttribute("href", "#" + id); s.appendChild(u);
+  return s;
+}
+function scrollDown() { window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }
 
-function renderCard(r) {
+// ---------------------------------------------------------------- theme (system default, remembered)
+function effectiveTheme() {
+  return document.documentElement.dataset.theme ||
+         (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+}
+function paintThemeIcon() {
+  const dark = effectiveTheme() === "dark";
+  $("theme-ico").setAttribute("href", dark ? "#i-moon" : "#i-sun");
+  $("theme").setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+}
+$("theme").addEventListener("click", () => {
+  const next = effectiveTheme() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("theme", next); } catch (e) {}
+  paintThemeIcon();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paintThemeIcon);
+paintThemeIcon();
+
+// ---------------------------------------------------------------- rendering
+function addTurn(question) {
+  const turn = el("div", "turn");
+  const user = el("div", "user");
+  const bubble = el("div", "bubble", question);
+  user.appendChild(bubble);
+  const loading = el("div", "bot loading");
+  const head = el("div", "bot-head");
+  const mark = icon("i-sparkle", 18); mark.classList.add("pulse");
+  head.append(mark, el("span", null, "Searching official sources…"));
+  const l1 = el("div", "shimmer"), l2 = el("div", "shimmer");
+  l1.style.width = "82%"; l2.style.width = "56%";
+  loading.append(head, l1, l2);
+  turn.append(user, loading);
+  thread.appendChild(turn);
+  $("empty").hidden = true;
+  scrollDown();
+  return { turn, bubble, loading };
+}
+
+function renderBot(t, r, asked) {
   // a newer message now exists: older pills can't be clicked out of order
-  for (const b of answers.querySelectorAll(".opt")) { b.disabled = true; b.classList.add("stale"); }
-  const card = el("div", "card");
-  const q = el("div", "q", r.question);
-  if (r.context_fund) q.appendChild(el("span", "ctx", " · about " + r.context_fund));
-  card.appendChild(q);
-  if (r.label) card.appendChild(el("div", "tag", r.label));
-  card.appendChild(el("div", "a", r.text));
-  if (r.url && /^https?:\/\//i.test(r.url)) {
-    const src = el("div", "src");
-    src.appendChild(el("b", null, "Source: "));
-    const a = el("a", null, r.url);
-    a.href = r.url; a.target = "_blank"; a.rel = "noopener noreferrer";
-    src.appendChild(a);
-    card.appendChild(src);
+  for (const b of thread.querySelectorAll(".opt")) { b.disabled = true; b.classList.add("stale"); }
+  if (r.question && r.question !== t.bubble.textContent) t.bubble.textContent = r.question;   // PII hidden by server
+
+  const bot = el("div", "bot");
+  const head = el("div", "bot-head");
+  const mark = icon("i-sparkle", 16); mark.classList.add("mark");
+  head.appendChild(mark);
+  const tag = TAGS[r.intent] || r.label;
+  if (tag) head.appendChild(el("span", "tag", tag));
+  bot.appendChild(head);
+  bot.appendChild(el("div", "bot-text", r.text));
+
+  const hasUrl = r.url && /^https?:\/\//i.test(r.url);
+  if (hasUrl || r.last_updated) {
+    const meta = el("div", "meta");
+    if (hasUrl) {
+      const line = el("div", null, "Source: ");
+      const a = el("a", null, r.url.replace(/^https?:\/\//i, ""));
+      a.href = r.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      line.appendChild(a); meta.appendChild(line);
+    }
+    if (r.last_updated) meta.appendChild(el("div", null, "Last updated from sources: " + r.last_updated));
+    bot.appendChild(meta);
   }
-  if (r.last_updated) card.appendChild(el("div", "upd", "Last updated from sources: " + r.last_updated));
+
+  const actions = el("div", "actions");
+  const copy = el("button", "copy"); copy.type = "button"; copy.title = "Copy"; copy.setAttribute("aria-label", "Copy answer");
+  copy.appendChild(icon("i-copy", 15));
+  copy.addEventListener("click", async () => {
+    const text = r.text + (hasUrl ? "\nSource: " + r.url : "");
+    try { await navigator.clipboard.writeText(text); } catch (e) { return; }
+    copy.classList.add("done"); copy.replaceChildren(icon("i-check", 15));
+    setTimeout(() => { copy.classList.remove("done"); copy.replaceChildren(icon("i-copy", 15)); }, 1400);
+  });
+  actions.appendChild(copy);
+  bot.appendChild(actions);
+
   if (r.pills && r.pills.length) {
     const box = el("div", "opts");
     for (const p of r.pills) {
-      const b = el("button", "opt" + (p.kind === "secondary" ? " secondary" : ""), p.label);
+      const b = el("button", "opt" + (p.kind === "secondary" ? " secondary" : ""));
       b.type = "button";
+      if (p.message === asked) { b.classList.add("selected"); b.appendChild(icon("i-check", 14)); }   // the pill just asked
+      else if (p.kind === "secondary") b.appendChild(icon("i-refresh", 14));
+      b.appendChild(el("span", null, p.label));
+      b.title = p.label;
       b.addEventListener("click", () => { if (!b.disabled) ask(p.message); });
       box.appendChild(b);
     }
-    card.appendChild(box);
+    bot.appendChild(box);
   }
   lastPills = r.pills || [];
-  answers.prepend(card);                           // newest first
-  $("clear").hidden = false;
-  $("landing").hidden = true;                      // welcome + examples only before the first answer
+  t.loading.replaceWith(bot);
+  scrollDown();
 }
 
-function setBusy(busy) {
-  btn.disabled = busy;
-  for (const b of $("examples").children) b.disabled = busy;
-  for (const b of answers.querySelectorAll(".opt:not(.stale)")) b.disabled = busy;
+function setBusy(on) {
+  busy = on;
+  btn.disabled = on || !input.value.trim();
+  for (const b of $("examples").children) b.disabled = on;
+  for (const b of thread.querySelectorAll(".opt:not(.stale)")) b.disabled = on;
 }
 
 async function ask(question) {
   question = (question || "").trim();
-  if (!question || btn.disabled) return;
+  if (!question || busy) return;
+  input.value = "";
   setBusy(true);
-  status.textContent = "Searching official sources…";
+  const t = addTurn(question);
   try {
     const res = await fetch("/api/chat", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -159,35 +401,40 @@ async function ask(question) {
     });
     const r = await res.json();
     if (r.state) state = r.state;
-    renderCard(r);
+    renderBot(t, r, question);
   } catch (e) {
-    renderCard({ question, text: "Sorry, the assistant is unavailable right now. Please try again.",
-                 label: "Error", pills: lastPills });          // keep the last choices usable
+    renderBot(t, { question, text: "Sorry, the assistant is unavailable right now. Please try again.",
+                   label: "Error", pills: lastPills }, question);   // keep the last choices usable
   } finally {
     setBusy(false);
-    status.textContent = "";
-    input.value = "";
-    input.focus();
+    input.focus({ preventScroll: true });
   }
 }
 
+input.addEventListener("input", () => { btn.disabled = busy || !input.value.trim(); });
 $("ask-form").addEventListener("submit", (e) => { e.preventDefault(); ask(input.value); });
-$("clear").addEventListener("click", () => {
-  answers.replaceChildren(); $("clear").hidden = true; $("landing").hidden = false;
+$("new").addEventListener("click", () => {
+  if (busy) return;
+  thread.replaceChildren(); $("empty").hidden = false;
   state = { fund: null }; lastPills = [];
+  input.value = ""; btn.disabled = true;
+  window.scrollTo({ top: 0 });
 });
 
+// ---------------------------------------------------------------- config (example questions, texts)
 fetch("/api/config").then((r) => r.json()).then((cfg) => {
   const box = $("examples");
   for (const q of cfg.example_questions || []) {
-    const b = el("button", "example", q);
+    const b = el("button", "suggestion");
     b.type = "button";
+    const ico = el("span", "ico"); ico.appendChild(icon("i-q", 16));
+    const go = el("span", "go"); go.appendChild(icon("i-arrow", 16));
+    b.append(ico, el("span", "txt", q), go);
     b.addEventListener("click", () => { input.value = q; ask(q); });   // fill the input, then submit
     box.appendChild(b);
   }
   if (cfg.welcome) $("welcome").textContent = cfg.welcome;
   if (cfg.disclaimer) $("disclaimer").textContent = cfg.disclaimer;
-  if (cfg.badge) $("badge").textContent = cfg.badge;
 }).catch(() => {});
 </script>
 </body>
