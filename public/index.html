@@ -119,28 +119,19 @@
   .empty { min-height: calc(100dvh - var(--bar-h) - 180px); display: flex; flex-direction: column;
            align-items: center; text-align: center; padding-top: 8vh; }
   /* margin-top keeps the orb and its glow (inset -22px) clear of the fixed top bar */
-  .orb { position: relative; width: 56px; height: 56px; margin: 28px 0 var(--s-lg); }
-  .orb::before { content: ""; position: absolute; inset: -22px; border-radius: 50%;
-                 background: var(--accent-soft); filter: blur(18px); opacity: .9; }
-  .orb-in { position: relative; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+  .orb { position: relative; width: 46px; height: 46px; margin: 24px 0 var(--s-md); }
+  .orb::before { content: ""; position: absolute; inset: -18px; border-radius: 50%;
+                 background: var(--accent-soft); filter: blur(16px); opacity: .9; }
+  .orb-in { position: relative; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
             background: var(--surface); border: 1px solid var(--border); color: var(--accent); }
   .empty h1 { font: var(--headline-md); letter-spacing: -.01em; margin: 0; max-width: 22ch; }
-  .empty .lede { font: var(--label-md); font-weight: 400; color: var(--muted); margin: var(--s-sm) 0 0; max-width: 40ch; }
   .suggest { width: 100%; margin-top: auto; padding-top: var(--s-xl); text-align: left; }
-  .suggest-head { display: flex; justify-content: space-between; align-items: center; margin: 0 4px var(--s-sm);
-                  font: var(--caption); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
   .suggest-list { display: flex; flex-direction: column; gap: var(--s-sm); }
-  .suggestion { display: flex; align-items: center; gap: var(--s-md); width: 100%; text-align: left; cursor: pointer;
+  .suggestion { display: block; width: 100%; text-align: left; cursor: pointer;
                 background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
-                padding: 12px 14px; font: var(--body-sm); font-size: 14px; color: var(--fg); }
+                padding: 10px 14px; font: var(--body-sm); font-size: 14px; color: var(--fg); }
   .suggestion:hover { border-color: var(--border-hover); }
   .suggestion:disabled { opacity: .6; cursor: wait; }
-  .suggestion .ico { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-2); color: var(--muted);
-                     display: grid; place-items: center; flex: none; }
-  .suggestion .txt { flex: 1; min-width: 0; }
-  .suggestion .go { color: var(--muted); }
-  .fineprint { font: var(--caption); letter-spacing: .01em; color: var(--muted); margin: var(--s-lg) 4px 0;
-               text-align: center; text-wrap: balance; }
 
   /* turns */
   #thread { display: flex; flex-direction: column; gap: var(--s-xl); }
@@ -206,10 +197,8 @@
   @media (max-width: 767px) {
     .empty { padding-top: var(--s-md); min-height: 0; }
     .orb { margin-bottom: var(--s-md); }
-    .empty .lede { font: var(--body-sm); }
     .suggest { padding-top: var(--s-lg); }
-    .suggestion { padding: 10px 12px; }
-    .fineprint { margin-top: var(--s-md); }
+    .suggestion { padding: 9px 12px; }
   }
 </style>
 </head>
@@ -226,8 +215,6 @@
   <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></g></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></g></symbol>
-  <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M7 17 17 7M9 7h8v8"/></symbol>
-  <symbol id="i-q" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5M12 16.5v.01"/></g></symbol>
 </svg>
 
 <header class="topbar">
@@ -240,13 +227,10 @@
 
 <main>
   <section class="empty" id="empty">
-    <div class="orb"><div class="orb-in"><svg width="26" height="26"><use href="#i-sparkle"/></svg></div></div>
-    <h1 id="welcome">Hi! Ask me quick facts about HDFC Mutual Fund schemes.</h1>
-    <p class="lede">Expense ratio, exit load, minimum SIP, lock-in, riskometer and benchmark, from public sources.</p>
+    <div class="orb"><div class="orb-in"><svg width="22" height="22"><use href="#i-sparkle"/></svg></div></div>
+    <h1>Ask me about any HDFC mutual fund.</h1>
     <div class="suggest">
-      <div class="suggest-head"><span>Suggestions</span><span>Tap to ask</span></div>
       <div class="suggest-list" id="examples"></div>
-      <p class="fineprint">Answers come from public sources and may not be up to date. Mutual fund investments are subject to market risks.</p>
     </div>
   </section>
   <div id="thread" aria-live="polite"></div>
@@ -258,7 +242,7 @@
       <input type="text" id="question" placeholder="Ask a fact about a fund…" maxlength="2000" aria-label="Your question">
       <button class="send" id="ask-btn" type="submit" aria-label="Send" disabled><svg width="20" height="20"><use href="#i-up"/></svg></button>
     </form>
-    <div class="note">Facts-only. No investment advice.</div>
+    <div class="note">Facts-only. No investment advice. Data may not be up to date.</div>
   </div>
 </div>
 
@@ -451,15 +435,11 @@ $("new").addEventListener("click", () => {
 fetch("/api/config").then((r) => r.json()).then((cfg) => {
   const box = $("examples");
   for (const q of cfg.example_questions || []) {
-    const b = el("button", "suggestion");
+    const b = el("button", "suggestion", q);
     b.type = "button";
-    const ico = el("span", "ico"); ico.appendChild(icon("i-q", 16));
-    const go = el("span", "go"); go.appendChild(icon("i-arrow", 16));
-    b.append(ico, el("span", "txt", q), go);
     b.addEventListener("click", () => { input.value = q; ask(q); });   // fill the input, then submit
     box.appendChild(b);
   }
-  if (cfg.welcome) $("welcome").textContent = cfg.welcome;
 }).catch(() => {});
 </script>
 </body>
