@@ -36,6 +36,25 @@ cache:
 guardrails:
   max_input_chars: 500
 
+# Typo / alias tolerance for routing in src/chat.py (not used by retrieval).
+# Each alias is replaced by its canonical phrase before routing. Matching is case-insensitive and
+# hyphens count as spaces. Aliases of 5+ letters also match typos ("expence" -> "expense") at
+# fuzzy_threshold (difflib similarity, 0-1); shorter ones (ter, sip, elss, risk) must match exactly.
+aliases:
+  fuzzy_threshold: 0.85
+  funds:                 # canonical scheme name: aliases
+    HDFC Large Cap Fund: [large cap, largecap]
+    HDFC Flexi Cap Fund: [flexi cap, flexicap, flexi]
+    HDFC ELSS Tax Saver Fund: [elss, tax saver, taxsaver, tax saving, elss tax saver]
+    HDFC Mid Cap Fund: [mid cap, midcap]
+  facts:                 # canonical phrase: aliases
+    expense ratio: [expense ratio, expense, expenses, ter, total expense ratio]
+    exit load: [exit load, exitload, exit charge, exit charges, exit fee]
+    minimum sip: [min sip, minimum sip, sip amount, minimum sip amount, min sip amount]
+    riskometer: [riskometer, risk o meter, risk, risk level, risk grade]
+    benchmark: [benchmark, benchmark index, bench mark]
+    lock in: [lock in, lockin, lock in period, lockin period]
+
 links:
   education: https://www.amfiindia.com/investor        # AMFI Investor Corner (linked in advice refusals)
 

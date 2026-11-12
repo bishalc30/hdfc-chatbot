@@ -25,6 +25,8 @@ import sys
 import time
 import uuid
 from datetime import datetime
+from difflib import SequenceMatcher
+from functools import lru_cache
 
 from src import guardrails as G
 from src.answerer import IST, answer, write_trace
@@ -80,12 +82,9 @@ REPLIES = {
         "Anytime! Come back whenever you need a quick fund fact.",
     ],
     "fallback": [
-        "I don't have that information. I can only share facts about HDFC mutual funds, like expense ratio, "
-        "exit load or minimum SIP.",
-        "Sorry, that's outside what I know. I can share facts about HDFC mutual funds, such as expense ratio, "
-        "exit load or minimum SIP.",
-        "I can't help with that one. I only cover HDFC mutual fund facts, like expense ratio, exit load or "
-        "minimum SIP.",
+        "I can only share facts about one HDFC fund at a time, like expense ratio, exit load or minimum SIP.",
+        "I'm built for quick facts about a single HDFC fund, such as expense ratio, exit load or lock-in period.",
+        "I can help with one HDFC fund's facts at a time, like its riskometer, benchmark or minimum SIP.",
     ],
     "advice": [
         "I share facts only, not investment advice. I can tell you facts about HDFC mutual funds, like expense "
@@ -123,6 +122,45 @@ FILLER = {"there", "bot", "assistant", "please", "so", "and", "i", "im", "am", "
 
 def plain(text: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", text.lower().replace("'", "").replace("’", ""))).strip()
+
+
+@lru_cache(maxsize=1)
+def alias_table() -> tuple[dict[str, str], float]:
+    """{plain alias: canonical phrase} from config `aliases` (fund aliases map to the scheme name)."""
+    cfg = get_config().get("aliases", {})
+    table = {}
+    for group in ("funds", "facts"):
+        for canon, aliases in (cfg.get(group) or {}).items():
+            for a in [canon, *aliases]:
+                table[plain(a)] = plain(canon)
+    return table, float(cfg.get("fuzzy_threshold", 0.85))
+
+
+def normalize(p: str) -> str:
+    """Replace fund / fact aliases and near-miss typos with their canonical phrase (routing only).
+    Scans left to right, longest phrase (3 words) first; exact match, else difflib similarity for
+    aliases and phrases of 5+ letters."""
+    table, threshold = alias_table()
+    fuzzy = [a for a in table if len(a) >= 5]
+    words, out, i = p.split(), [], 0
+    while i < len(words):
+        for n in (3, 2, 1):
+            phrase = " ".join(words[i:i + n])
+            if len(words) - i < n:
+                continue
+            canon = table.get(phrase)
+            if canon is None and len(phrase) >= 5:
+                best = max(fuzzy, key=lambda a: SequenceMatcher(None, phrase, a).ratio(), default=None)
+                if best and SequenceMatcher(None, phrase, best).ratio() >= threshold:
+                    canon = table[best]
+            if canon is not None:
+                out.append(canon)
+                i += n
+                break
+        else:
+            out.append(words[i])
+            i += 1
+    return " ".join(out)
 
 
 def display(fund: str | None) -> str | None:
@@ -253,12 +291,13 @@ def chat(message: str, state: dict | None = None, pill_click: dict | None = None
         # unknown / invalid pill: fall through and treat it as typed text
 
     p = plain(q)
-    schemes = detect_schemes(q)
+    n = normalize(p)                                         # aliases + typos -> canonical fund / fact names
+    schemes = detect_schemes(n)
 
     # 2. typed navigation
     if CHANGE_FUND.match(p) or HOUSE.match(p):
         return routed("fund_step", MSG["ask_fund"], fund_pills(), fund)
-    if len(schemes) == 1 and is_fund_selection(p):
+    if len(schemes) == 1 and is_fund_selection(n):
         new = schemes[0]
         return routed("question_step", MSG["ask_fact"].format(f=display(new)), question_pills(new), new)
 
@@ -271,7 +310,7 @@ def chat(message: str, state: dict | None = None, pill_click: dict | None = None
         return fixed("advice", default_pills(fund), url=get_config()["links"]["education"], link_label="Learn more")
 
     # 5. facts
-    fact = fact_of(p)
+    fact = fact_of(n)
     if fact:
         if len(schemes) == 1:
             return factual(schemes[0], fact)                 # named fund becomes the selected fund

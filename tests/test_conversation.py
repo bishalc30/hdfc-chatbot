@@ -76,6 +76,37 @@ def test_routes_and_llm_calls(llm, message, fund, route, calls):
         assert r["url"] is None                                      # non-factual replies carry no link
 
 
+@pytest.mark.parametrize("message,fund,fact", [
+    ("midcap exit load", "HDFC Mid Cap Fund", "exit_load"),
+    ("expence ratio of largecap", "HDFC Large Cap Fund", "expense_ratio"),
+    ("elss lockin", "HDFC ELSS Tax Saver Fund", "lock_in"),
+    ("min sip flexi cap", "HDFC Flexi Cap Fund", "min_sip"),
+    ("risk level of tax saver", "HDFC ELSS Tax Saver Fund", "riskometer"),
+    ("TER of mid-cap", "HDFC Mid Cap Fund", "expense_ratio"),
+    ("flexicap exitload", "HDFC Flexi Cap Fund", "exit_load"),
+    ("largecap exit charge", "HDFC Large Cap Fund", "exit_load"),
+    ("sip amount midcap", "HDFC Mid Cap Fund", "min_sip"),
+    ("benchmark index of flexi cap", "HDFC Flexi Cap Fund", "benchmark"),
+    ("taxsaver lock in", "HDFC ELSS Tax Saver Fund", "lock_in"),
+    ("risk of elss", "HDFC ELSS Tax Saver Fund", "riskometer"),
+])
+def test_aliases_and_typos_route_to_factual(llm, message, fund, fact):
+    r, n = turn(llm, message)
+    assert (r["route"], r["state"]["fund"], r["asked"], n) == ("factual", fund, C.question_for(fund, fact), 1)
+
+
+@pytest.mark.parametrize("message", ["what is the expected return", "tell me a joke", "lock my account",
+                                     "is it risky", "exit", "what is nav"])
+def test_fuzzy_matching_has_no_false_positives(llm, message):
+    r, n = turn(llm, message)
+    assert r["route"] != "factual" and n == 0
+
+
+def test_fallback_does_not_claim_missing_information():
+    assert all("one HDFC fund" in t or "single HDFC fund" in t for t in C.REPLIES["fallback"])
+    assert not any("don't have" in t or "outside what I know" in t for t in C.REPLIES["fallback"])
+
+
 def test_pill_click_skips_classification(llm):
     pill = C.question_pills(MID)[1]                                  # Exit load
     assert (pill["action"], pill["fund"], pill["fact"]) == ("fact", MID, "exit_load")
