@@ -13,7 +13,7 @@ if str(ROOT) not in sys.path:
 
 import streamlit as st  # noqa: E402
 
-from src.answerer import answer  # noqa: E402
+from src.chat import LABEL as CHAT_LABEL, chat  # noqa: E402
 from src.config import get_config, get_env, path  # noqa: E402
 
 DISCLAIMER = (
@@ -94,6 +94,17 @@ header[data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecor
 .answer-source {{ margin-top: .7rem; font-size: .9rem; color: #374151; word-break: break-all; }}
 .answer-source a {{ color: {GREEN}; }}
 .answer-updated {{ color: #9ca3af; font-size: .8rem; margin-top: .25rem; }}
+.answer-ctx {{ color: #9ca3af; }}
+
+/* guided-flow pills under each reply card: wrap on narrow screens */
+[class*="st-key-opts_"] {{ flex-wrap: wrap; gap: .45rem; margin: -.4rem 0 .6rem 0; }}
+[class*="st-key-opts_"] > div {{ max-width: 100%; }}
+[class*="st-key-opts_"] button {{
+    background: #ffffff; color: {GREEN}; border: 1px solid #c8e6c9; border-radius: 999px;
+    padding: .3rem .85rem; min-height: 0; max-width: 100%;
+}}
+[class*="st-key-opts_"] button p {{ white-space: normal; font-size: .88rem; line-height: 1.3; }}
+[class*="st-key-opts_"] button:hover:not(:disabled) {{ background: #e8f5e9; border-color: {GREEN}; color: {GREEN}; }}
 
 /* clear button: plain text link style */
 .st-key-clear button {{ background: transparent; border: none; color: #6b7280; padding: 0; min-height: 0; }}
@@ -128,8 +139,9 @@ def warm_up():
 
 
 def answer_card(question: str, r: dict) -> str:
-    parts = ['<div class="answer-card">', f'<div class="answer-q">{esc(question)}</div>']
-    label = INTENT_LABEL.get(r["intent"])
+    ctx = f'<span class="answer-ctx"> · about {esc(r["context_fund"])}</span>' if r.get("context_fund") else ""
+    parts = ['<div class="answer-card">', f'<div class="answer-q">{esc(question)}{ctx}</div>']
+    label = CHAT_LABEL.get(r["intent"]) or INTENT_LABEL.get(r["intent"])
     if label:
         parts.append(f'<div class="answer-label">{esc(label)}</div>')
     parts.append(f'<div class="answer-text">{esc(r["text"])}</div>')
@@ -240,9 +252,17 @@ except Exception as e:  # missing index, model mismatch, ...
 
 if "history" not in st.session_state:
     st.session_state.history = []
+if "chat_state" not in st.session_state:
+    st.session_state.chat_state = {"fund": None}      # guided flow: the selected fund
+
+
+def queue_pill(message: str) -> None:
+    """Pill callback: runs before the rerun, so the click is handled like a typed question."""
+    st.session_state.pending = message
+
 
 # landing state: welcome line + example chips, only until the first answer
-clicked = None
+clicked = st.session_state.pop("pending", None)
 landing = st.empty()
 if not st.session_state.history:
     with landing.container():
@@ -268,21 +288,31 @@ if question is not None:
     landing.empty()   # hide welcome + examples as soon as a question is asked
     with st.spinner("Searching official sources…"):
         try:
-            resp = answer(question)
+            resp = chat(question, st.session_state.chat_state)
+            st.session_state.chat_state = resp["state"]
         except Exception as e:
             resp = {"intent": "error", "text": f"Something went wrong: {e}", "url": None,
-                    "last_updated": None, "trace": {}}
+                    "last_updated": None, "trace": {}, "pills": []}
     shown = HIDDEN_PII if resp["intent"] == "pii" else question
     st.session_state.history.append({"question": shown, "response": resp})
 
-# answers: newest first, each in a white card
-for turn in reversed(st.session_state.history):
+# answers: newest first, each in a white card; only the newest card's pills can be clicked
+last = len(st.session_state.history) - 1
+for idx in range(last, -1, -1):
+    turn = st.session_state.history[idx]
     st.markdown(answer_card(turn["question"], turn["response"]), unsafe_allow_html=True)
+    pills = turn["response"].get("pills") or []
+    if pills:
+        with st.container(key=f"opts_{idx}", horizontal=True, gap="small"):
+            for j, p in enumerate(pills):
+                st.button(p["label"], key=f"opt_{idx}_{j}", width="content", disabled=idx != last,
+                          on_click=queue_pill, args=(p["message"],))
 
 if st.session_state.history:
     with st.container(key="clear"):
         if st.button("Clear answers"):
             st.session_state.history = []
+            st.session_state.chat_state = {"fund": None}
             st.rerun()
 
 if SHOW_DEBUG:
