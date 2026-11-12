@@ -144,6 +144,14 @@ OUTPUT_LEAK = re.compile(
     r"worth investing|consider investing)\b|\d+(\.\d+)?\s?%\s*(returns?|cagr|p\.?\s?a\.?)", re.I)
 
 
+EM_DASH = re.compile(r"\s*\u2014\s*")
+
+
+def no_em_dashes(text: str) -> str:
+    """Fallback for the prompt rule: replace any em dash with ", " (text only, never the citation)."""
+    return EM_DASH.sub(", ", text)
+
+
 @dataclass
 class ValidatedAnswer:
     ok: bool
@@ -160,7 +168,7 @@ def validate_answer(raw: str, allowed_urls: list[str], max_sentences: int) -> Va
     url = m.group(1).rstrip(".,)") if m else None
     body = SOURCE_LINE.sub("", raw)
     body = URL.sub("", body)                                 # exactly one link: the citation
-    body = re.sub(r"\s+", " ", body).strip()
+    body = re.sub(r"\s+", " ", no_em_dashes(body)).strip()
     if not body:
         return ValidatedAnswer(False, reason="empty_answer")
 

@@ -32,15 +32,12 @@ from src.answerer import answer  # noqa: E402
 from src.chat import chat  # noqa: E402
 from src.config import get_config  # noqa: E402
 
-DISCLAIMER = (
-    "Facts-only. No investment advice. Answers are drawn from official public sources and may not "
-    "reflect the latest updates — please verify on the linked page. Mutual fund investments are "
-    "subject to market risks; read all scheme-related documents carefully."
-)
+DISCLAIMER = ("Answers come from public sources and may not be up to date. "
+              "Mutual fund investments are subject to market risks.")
 HIDDEN_PII = "‹message hidden: it contained personal details›"
 INTENT_LABEL = {
-    "advice": "Advice question — facts only",
-    "performance": "Returns question — see official documents",
+    "advice": "Advice question, facts only",
+    "performance": "Returns question, see official documents",
     "pii": "Personal details blocked",
     "not_available": "Not in sources",
     "clarify": "Needs scheme name",

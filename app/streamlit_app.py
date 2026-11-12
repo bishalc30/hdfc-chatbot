@@ -18,13 +18,13 @@ from src.config import get_config, get_env, path  # noqa: E402
 
 DISCLAIMER = (
     "Facts-only. No investment advice. Answers are drawn from official public sources and may not "
-    "reflect the latest updates — please verify on the linked page. Mutual fund investments are "
+    "reflect the latest updates. Please verify on the linked page. Mutual fund investments are "
     "subject to market risks; read all scheme-related documents carefully."
 )
 HIDDEN_PII = "‹message hidden: it contained personal details›"
 INTENT_LABEL = {
-    "factual": None, "advice": "Advice question — facts only",
-    "performance": "Returns question — see official documents", "pii": "Personal details blocked",
+    "factual": None, "advice": "Advice question, facts only",
+    "performance": "Returns question, see official documents", "pii": "Personal details blocked",
     "not_available": "Not in sources", "clarify": "Needs scheme name", "error": "Error", "empty": None,
 }
 
@@ -166,7 +166,7 @@ def show_pipeline(r: dict) -> None:
     ret = t.get("retrieval", {})
     c1, c2, c3 = st.columns(3)
     c1.metric("Intent", t.get("intent", r["intent"]))
-    c2.metric("Top similarity", f"{ret['hits'][0]['similarity']:.3f}" if ret.get("hits") else "—")
+    c2.metric("Top similarity", f"{ret['hits'][0]['similarity']:.3f}" if ret.get("hits") else "n/a")
     c3.metric("Latency", f"{t.get('latency_ms', 0)} ms")
 
     tabs = st.tabs(["Retrieval", "Prompt", "LLM output", "Full trace"])
@@ -178,7 +178,7 @@ def show_pipeline(r: dict) -> None:
                      f"Filter: `{ret.get('filter') or 'none'}` · "
                      f"Threshold: `{ret.get('threshold')}` · Confident: `{ret.get('confident')}`")
             st.dataframe(
-                [{"similarity": h["similarity"], "scheme": h["scheme"] or "—", "section": h["section"],
+                [{"similarity": h["similarity"], "scheme": h["scheme"] or "none", "section": h["section"],
                   "text": h["text"]} for h in ret.get("hits", [])],
                 hide_index=True, width="stretch")
     with tabs[1]:
@@ -193,7 +193,7 @@ def show_pipeline(r: dict) -> None:
         llm = t.get("llm", {})
         if llm:
             st.write(f"Provider: `{llm.get('provider')}` · Model: `{llm.get('model')}` · "
-                     f"Validation: `{t.get('validation', '—')}`")
+                     f"Validation: `{t.get('validation', 'n/a')}`")
             if llm.get("error"):
                 st.error(llm["error"])
             st.code(llm.get("raw_output", ""), language=None, wrap_lines=True)
@@ -219,7 +219,7 @@ def pipeline_status() -> None:
         ("5 · Index", f"{index['count']} items" if index else "not run"),
     ]
     for name, value in rows:
-        st.markdown(f"**{name}** — {value}")
+        st.markdown(f"**{name}**: {value}")
     env = get_env()
     st.caption(f"LLM: **{env['provider']}** / `{env['model']}` · Embeddings: `{CFG['embedding']['model_name']}`")
     for label, data in [("Chunks", chunks), ("Embeddings", emb), ("Vector DB", index)]:
@@ -232,7 +232,7 @@ def pipeline_status() -> None:
 st.markdown(CSS, unsafe_allow_html=True)
 
 st.markdown('<div class="app-title">HDFC Mutual Fund Facts Assistant</div>', unsafe_allow_html=True)
-st.markdown('<div class="app-sub">Ask factual questions about HDFC Mutual Fund schemes — expense ratio, '
+st.markdown('<div class="app-sub">Ask factual questions about HDFC Mutual Fund schemes, such as expense ratio, '
             'exit load, minimum SIP, lock-in, riskometer, benchmark, fund manager and statements.</div>',
             unsafe_allow_html=True)
 st.markdown('<span class="pill">Facts-only. No investment advice.</span>', unsafe_allow_html=True)
@@ -240,7 +240,7 @@ st.markdown('<span class="pill">Facts-only. No investment advice.</span>', unsaf
 try:
     env = get_env()
     if not env["api_key"]:
-        st.warning(f"{env['provider'].upper()}_API_KEY is not set in .env — factual answers will fail.")
+        st.warning(f"{env['provider'].upper()}_API_KEY is not set in .env. Factual answers will fail.")
 except ValueError as e:
     st.error(str(e))
 
