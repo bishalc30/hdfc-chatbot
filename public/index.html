@@ -20,13 +20,16 @@
   .pill { display: inline-block; background: var(--green-soft); color: var(--green);
           border: 1px solid var(--green-border); border-radius: 999px; padding: .2rem .75rem;
           font-size: .8rem; font-weight: 600; margin-bottom: 1.4rem; }
-  .label { color: var(--muted); font-size: .85rem; font-weight: 600; margin: .2rem 0 .4rem; }
-  .examples { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
+  [hidden] { display: none !important; }
+  /* landing state: welcome line + example chips (hidden once the first answer appears) */
+  .welcome { text-align: center; color: var(--text-2); font-size: 1.05rem; font-weight: 600; margin: .4rem 0 .8rem; }
+  .examples { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin-bottom: 1.1rem; }
   .example { background: var(--card); color: #1f2937; border: 1px solid var(--border); border-radius: 10px;
-             padding: .65rem 1rem; text-align: left; font: inherit; cursor: pointer; white-space: normal;
-             box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+             padding: .5rem .9rem; font: inherit; font-size: .92rem; line-height: 1.35; text-align: center;
+             cursor: pointer; white-space: normal; max-width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
   .example:hover { border-color: var(--green); color: var(--green); }
-  form { display: flex; gap: .5rem; margin-bottom: .5rem; }
+  .example:disabled { opacity: .6; cursor: wait; }
+  form { display: flex; gap: .5rem; margin-bottom: .3rem; }
   input[type=text] { flex: 1; min-width: 0; padding: .6rem .8rem; font: inherit; color: var(--text);
                      background: var(--card); border: 1px solid #d1d5db; border-radius: 8px; }
   input[type=text]:focus { outline: 2px solid var(--green-border); border-color: var(--green); }
@@ -34,6 +37,7 @@
          padding: 0 1.4rem; font: inherit; font-weight: 600; cursor: pointer; }
   .ask:hover { background: var(--green-dark); border-color: var(--green-dark); }
   .ask:disabled { opacity: .6; cursor: wait; }
+  .note { color: var(--faint); font-size: .8rem; margin: 0 0 .2rem; }
   .status { color: var(--muted); font-size: .9rem; min-height: 1.3rem; margin: .3rem 0; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
           padding: 1.1rem 1.25rem; margin: .9rem 0; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
@@ -59,13 +63,16 @@
     lock-in, riskometer, benchmark, fund manager and statements.</p>
   <span class="pill" id="badge">Facts-only. No investment advice.</span>
 
-  <div class="label">Try an example</div>
-  <div class="examples" id="examples"></div>
+  <div id="landing">
+    <p class="welcome" id="welcome">Hi! Ask me quick facts about HDFC Mutual Fund schemes.</p>
+    <div class="examples" id="examples"></div>
+  </div>
 
   <form id="ask-form" autocomplete="off">
     <input type="text" id="question" placeholder="Type your question…" maxlength="2000" aria-label="Your question">
     <button class="ask" id="ask-btn" type="submit">Ask</button>
   </form>
+  <div class="note">Facts-only. No investment advice.</div>
   <div class="status" id="status" aria-live="polite"></div>
 
   <div id="answers"></div>
@@ -104,12 +111,18 @@ function renderCard(r) {
   if (r.last_updated) card.appendChild(el("div", "upd", "Last updated from sources: " + r.last_updated));
   answers.prepend(card);                           // newest first
   $("clear").hidden = false;
+  $("landing").hidden = true;                      // welcome + examples only before the first answer
+}
+
+function setBusy(busy) {
+  btn.disabled = busy;
+  for (const b of $("examples").children) b.disabled = busy;
 }
 
 async function ask(question) {
   question = (question || "").trim();
   if (!question || btn.disabled) return;
-  btn.disabled = true;
+  setBusy(true);
   status.textContent = "Searching official sources…";
   try {
     const res = await fetch("/api/ask", {
@@ -122,7 +135,7 @@ async function ask(question) {
     renderCard({ question, text: "Sorry, the assistant is unavailable right now. Please try again.",
                  label: "Error" });
   } finally {
-    btn.disabled = false;
+    setBusy(false);
     status.textContent = "";
     input.value = "";
     input.focus();
@@ -130,16 +143,19 @@ async function ask(question) {
 }
 
 $("ask-form").addEventListener("submit", (e) => { e.preventDefault(); ask(input.value); });
-$("clear").addEventListener("click", () => { answers.replaceChildren(); $("clear").hidden = true; });
+$("clear").addEventListener("click", () => {
+  answers.replaceChildren(); $("clear").hidden = true; $("landing").hidden = false;
+});
 
 fetch("/api/config").then((r) => r.json()).then((cfg) => {
   const box = $("examples");
   for (const q of cfg.example_questions || []) {
     const b = el("button", "example", q);
     b.type = "button";
-    b.addEventListener("click", () => ask(q));
+    b.addEventListener("click", () => { input.value = q; ask(q); });   // fill the input, then submit
     box.appendChild(b);
   }
+  if (cfg.welcome) $("welcome").textContent = cfg.welcome;
   if (cfg.disclaimer) $("disclaimer").textContent = cfg.disclaimer;
   if (cfg.badge) $("badge").textContent = cfg.badge;
 }).catch(() => {});

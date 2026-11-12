@@ -59,15 +59,18 @@ header[data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecor
 }}
 .section-label {{ color: #6b7280; font-size: .85rem; font-weight: 600; margin: .2rem 0 .4rem 0; }}
 
-/* example questions: full-width white buttons, left-aligned, never truncated */
+/* landing state: welcome line + example chips (wrap on narrow screens, never truncated) */
+.welcome {{ text-align: center; color: #374151; font-size: 1.05rem; font-weight: 600; margin: .4rem 0 .3rem 0; }}
+.st-key-examples {{ flex-wrap: wrap; justify-content: center; gap: .5rem; }}
+.st-key-examples > div {{ max-width: 100%; }}
 .st-key-examples button {{
     background: #ffffff; color: #1f2937; border: 1px solid #e5e7eb; border-radius: 10px;
-    justify-content: flex-start; text-align: left; padding: .65rem 1rem; min-height: 0;
-    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    padding: .5rem .9rem; min-height: 0; max-width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,.03);
 }}
-.st-key-examples button p {{ white-space: normal; overflow: visible; text-overflow: clip; text-align: left; }}
+.st-key-examples button p {{ white-space: normal; overflow: visible; text-overflow: clip; text-align: center;
+                             font-size: .92rem; line-height: 1.35; }}
 .st-key-examples button:hover {{ border-color: {GREEN}; color: {GREEN}; background: #ffffff; }}
-.st-key-examples [data-testid="stVerticalBlock"] {{ gap: .5rem; }}
+.note {{ color: #9ca3af; font-size: .8rem; margin: -.4rem 0 .4rem 0; }}
 
 /* ask box: input + dark green Ask button */
 .st-key-ask_box input {{ background: #ffffff; border-radius: 8px; }}
@@ -238,13 +241,16 @@ except Exception as e:  # missing index, model mismatch, ...
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# example questions (stacked, full text)
+# landing state: welcome line + example chips, only until the first answer
 clicked = None
-st.markdown('<div class="section-label">Try an example</div>', unsafe_allow_html=True)
-with st.container(key="examples"):
-    for i, q in enumerate(CFG["ui"]["example_questions"]):
-        if st.button(q, key=f"example_{i}", width="stretch"):
-            clicked = q
+landing = st.empty()
+if not st.session_state.history:
+    with landing.container():
+        st.markdown(f'<div class="welcome">{esc(CFG["ui"].get("welcome", ""))}</div>', unsafe_allow_html=True)
+        with st.container(key="examples", horizontal=True, horizontal_alignment="center", gap="small"):
+            for i, q in enumerate(CFG["ui"]["example_questions"]):
+                if st.button(q, key=f"example_{i}", width="content"):
+                    clicked = q
 
 # question input + Ask button
 typed = None
@@ -255,9 +261,11 @@ with st.container(key="ask_box"):
                                  label_visibility="collapsed")
         if col_btn.form_submit_button("Ask", width="stretch"):
             typed = text
+st.markdown('<div class="note">Facts-only. No investment advice.</div>', unsafe_allow_html=True)
 
 question = typed or clicked
 if question is not None:
+    landing.empty()   # hide welcome + examples as soon as a question is asked
     with st.spinner("Searching official sources…"):
         try:
             resp = answer(question)

@@ -40,7 +40,8 @@ links:
 
 ui:
   show_debug: false      # true = show the "Show pipeline" panel and the sidebar's RAG pipeline section
+  welcome: "Hi! Ask me quick facts about HDFC Mutual Fund schemes."
   example_questions:
-    - "What is the expense ratio of HDFC Mid Cap Fund?"
+    - "What is the expense ratio of HDFC Large Cap Fund?"
     - "What is the lock-in period of HDFC ELSS Tax Saver?"
-    - "How do I download my capital-gains statement?"
+    - "What is the minimum SIP amount for HDFC Mid Cap Fund?"

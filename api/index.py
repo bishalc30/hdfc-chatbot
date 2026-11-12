@@ -1,6 +1,6 @@
 """Vercel serverless API (FastAPI) for the HDFC MF Facts Assistant.
 
-  GET  /api/config  -> example questions, disclaimer, badge text
+  GET  /api/config  -> welcome line, example questions, disclaimer, badge text
   POST /api/ask     -> {"question": "..."} -> answer card data
   GET  /api/health  -> index/model status
 
@@ -59,7 +59,8 @@ class AskRequest(BaseModel):
 @app.get("/api/config")
 def config():
     cfg = get_config()
-    return {"example_questions": cfg["ui"]["example_questions"], "disclaimer": DISCLAIMER,
+    return {"welcome": cfg["ui"].get("welcome"), "example_questions": cfg["ui"]["example_questions"],
+            "disclaimer": DISCLAIMER,
             "badge": "Facts-only. No investment advice."}
 
 
