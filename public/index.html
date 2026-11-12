@@ -282,6 +282,8 @@ function icon(id, size) {
   u.setAttribute("href", "#" + id); s.appendChild(u);
   return s;
 }
+// Auto-focus only with a fine pointer (desktop); on touch devices it would pop the keyboard open.
+const finePointer = () => window.matchMedia("(pointer: fine)").matches;
 function scrollDown() { window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }
 
 // ---------------------------------------------------------------- theme (system default, remembered)
@@ -392,6 +394,7 @@ async function ask(question) {
   question = (question || "").trim();
   if (!question || busy) return;
   input.value = "";
+  if (!finePointer()) input.blur();                 // touch: close the keyboard so the answer is readable
   setBusy(true);
   const t = addTurn(question);
   try {
@@ -407,7 +410,7 @@ async function ask(question) {
                    label: "Error", pills: lastPills }, question);   // keep the last choices usable
   } finally {
     setBusy(false);
-    input.focus({ preventScroll: true });
+    if (finePointer()) input.focus({ preventScroll: true });
   }
 }
 
