@@ -48,12 +48,12 @@ MSG = {
               "minimum SIP, lock-in period, riskometer or benchmark of a scheme.",
     "performance": "I don't compute or compare returns. Please refer to the official scheme documents "
                    "and factsheet for performance details.",
-    "not_available": "I couldn't find this in my official sources. You may find it on the page linked below.",
+    "not_available": "I couldn't find this in my sources. You may find it on the page linked below.",
+    "not_available_nolink": "I couldn't find this in my sources.",
     "clarify": "Which scheme do you mean? I have facts for {schemes}. Please include the scheme name in "
                "your question.",
     "error": "Sorry, I couldn't generate an answer right now. Please check the source page linked below.",
 }
-STATEMENT_Q = re.compile(r"\bstatements?\b|\bcapital[\s-]*gains?\b|\bcas\b", re.I)
 
 
 # ---------------------------------------------------------------- reference links from the loaded docs
@@ -176,12 +176,17 @@ def answer(question: str) -> dict:
                   "scheme": h["meta"]["scheme_name"], "source_url": h["meta"]["source_url"],
                   "text": h["text"]} for h in hits],
     }
-    fallback_url = links["statements_help"] if STATEMENT_Q.search(q) else (
-        hits[0]["meta"]["source_url"] if hits else links["education"])
+    # "Not in sources" carries a link only when the question named one fund: that fund's page
+    named = result["schemes_detected"]
+    nis_url = refs["schemes"].get(named[0], {}).get("page") if len(named) == 1 else None
+
+    def not_available():
+        return respond("not_available", MSG["not_available"] if nis_url else MSG["not_available_nolink"],
+                       nis_url, trace, t0)
 
     # 5a. below threshold -> not available
     if not result["confident"]:
-        return respond("not_available", MSG["not_available"], fallback_url, trace, t0)
+        return not_available()
 
     # 5b. scheme-specific fact asked without naming a scheme -> ask which one
     if not result["schemes_detected"]:
@@ -191,8 +196,7 @@ def answer(question: str) -> dict:
                       and h["meta"]["scheme_name"]}
         if top["chunk_type"] == "fact" and top["scheme_name"] and len(same_field) > 1:
             names = ", ".join(sorted(refs["schemes"]))
-            return respond("clarify", MSG["clarify"].format(schemes=names),
-                           refs["amc"] or fallback_url, trace, t0)
+            return respond("clarify", MSG["clarify"].format(schemes=names), refs["amc"], trace, t0)
 
     # 6. LLM
     messages = build_messages(q, hits, cfg["generation"]["max_sentences"])
@@ -212,7 +216,7 @@ def answer(question: str) -> dict:
     if not v.ok:
         if v.reason == "advice_or_performance_leak":
             return respond("advice", MSG["advice"], None, trace, t0)
-        return respond("not_available", MSG["not_available"], fallback_url, trace, t0)
+        return not_available()
 
     # 8. format
     cited = next(h for h in hits if h["meta"]["source_url"] == v.url)

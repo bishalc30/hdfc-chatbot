@@ -1,6 +1,7 @@
 """LLM providers. LLM_PROVIDER and LLM_MODEL come from .env (Groq is the default).
 
-Every client exposes: complete(messages, temperature, max_tokens) -> str
+Every client exposes: complete(messages, temperature, max_tokens, timeout=None) -> str
+(timeout: per-call seconds; defaults to generation.timeout_s)
 `messages` uses the OpenAI-style format: [{"role": "system"|"user"|"assistant", "content": "..."}]
 
 All providers are called through their public HTTP APIs with httpx, so no provider SDKs are
@@ -40,8 +41,9 @@ class _HTTPClient:
         self.api_key, self.model = api_key, model
         self.http = httpx.Client(timeout=timeout)
 
-    def _post(self, url: str, headers: dict, body: dict) -> dict:
-        r = self.http.post(url, headers={"Content-Type": "application/json", **headers}, json=body)
+    def _post(self, url: str, headers: dict, body: dict, timeout: float | None = None) -> dict:
+        r = self.http.post(url, headers={"Content-Type": "application/json", **headers}, json=body,
+                           timeout=timeout or self.http.timeout)
         if r.status_code >= 400:
             # Provider error text only (never the request, which holds the prompt/key headers)
             raise LLMError(f"{self.name} API {r.status_code}: {r.text[:300]}")
@@ -53,10 +55,10 @@ class OpenAICompatibleClient(_HTTPClient):
     url = ""
     tokens_field = "max_tokens"
 
-    def complete(self, messages, temperature=0.0, max_tokens=1024) -> str:
+    def complete(self, messages, temperature=0.0, max_tokens=1024, timeout=None) -> str:
         body = {"model": self.model, "messages": messages, "temperature": temperature,
                 self.tokens_field: max_tokens}
-        data = self._post(self.url, {"Authorization": f"Bearer {self.api_key}"}, body)
+        data = self._post(self.url, {"Authorization": f"Bearer {self.api_key}"}, body, timeout)
         return clean_output(data["choices"][0]["message"].get("content"))
 
 
@@ -80,19 +82,19 @@ class AnthropicClient(_HTTPClient):
     name = "anthropic"
     url = "https://api.anthropic.com/v1/messages"
 
-    def complete(self, messages, temperature=0.0, max_tokens=1024) -> str:
+    def complete(self, messages, temperature=0.0, max_tokens=1024, timeout=None) -> str:
         system, msgs = split_system(messages)
         body = {"model": self.model, "messages": msgs, "max_tokens": max_tokens, "temperature": temperature}
         if system:
             body["system"] = system
-        data = self._post(self.url, {"x-api-key": self.api_key, "anthropic-version": "2023-06-01"}, body)
+        data = self._post(self.url, {"x-api-key": self.api_key, "anthropic-version": "2023-06-01"}, body, timeout)
         return clean_output("".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"))
 
 
 class GeminiClient(_HTTPClient):
     name = "gemini"
 
-    def complete(self, messages, temperature=0.0, max_tokens=1024) -> str:
+    def complete(self, messages, temperature=0.0, max_tokens=1024, timeout=None) -> str:
         system, msgs = split_system(messages)
         body = {
             "contents": [{"role": "user" if m["role"] == "user" else "model", "parts": [{"text": m["content"]}]}
@@ -102,7 +104,7 @@ class GeminiClient(_HTTPClient):
         if system:
             body["systemInstruction"] = {"parts": [{"text": system}]}
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
-        data = self._post(url, {"x-goog-api-key": self.api_key}, body)
+        data = self._post(url, {"x-goog-api-key": self.api_key}, body, timeout)
         parts = (data.get("candidates") or [{}])[0].get("content", {}).get("parts", [])
         return clean_output("".join(p.get("text", "") for p in parts))
 

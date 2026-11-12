@@ -118,7 +118,8 @@
   /* empty state */
   .empty { min-height: calc(100dvh - var(--bar-h) - 180px); display: flex; flex-direction: column;
            align-items: center; text-align: center; padding-top: 8vh; }
-  .orb { position: relative; width: 56px; height: 56px; margin-bottom: var(--s-lg); }
+  /* margin-top keeps the orb and its glow (inset -22px) clear of the fixed top bar */
+  .orb { position: relative; width: 56px; height: 56px; margin: 28px 0 var(--s-lg); }
   .orb::before { content: ""; position: absolute; inset: -22px; border-radius: 50%;
                  background: var(--accent-soft); filter: blur(18px); opacity: .9; }
   .orb-in { position: relative; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
@@ -138,7 +139,8 @@
                      display: grid; place-items: center; flex: none; }
   .suggestion .txt { flex: 1; min-width: 0; }
   .suggestion .go { color: var(--muted); }
-  .fineprint { font: var(--caption); color: var(--muted); margin: var(--s-lg) 4px 0; text-align: center; opacity: .9; }
+  .fineprint { font: var(--caption); letter-spacing: .01em; color: var(--muted); margin: var(--s-lg) 4px 0;
+               text-align: center; text-wrap: balance; }
 
   /* turns */
   #thread { display: flex; flex-direction: column; gap: var(--s-xl); }
@@ -202,7 +204,7 @@
 
   @media (min-width: 768px) { .empty h1 { font-size: 26px; line-height: 34px; } }
   @media (max-width: 767px) {
-    .empty { padding-top: 2vh; min-height: 0; }
+    .empty { padding-top: var(--s-md); min-height: 0; }
     .orb { margin-bottom: var(--s-md); }
     .empty .lede { font: var(--body-sm); }
     .suggest { padding-top: var(--s-lg); }
@@ -240,13 +242,11 @@
   <section class="empty" id="empty">
     <div class="orb"><div class="orb-in"><svg width="26" height="26"><use href="#i-sparkle"/></svg></div></div>
     <h1 id="welcome">Hi! Ask me quick facts about HDFC Mutual Fund schemes.</h1>
-    <p class="lede">Expense ratio, exit load, minimum SIP, lock-in, riskometer and benchmark — from official public sources.</p>
+    <p class="lede">Expense ratio, exit load, minimum SIP, lock-in, riskometer and benchmark, from public sources.</p>
     <div class="suggest">
       <div class="suggest-head"><span>Suggestions</span><span>Tap to ask</span></div>
       <div class="suggest-list" id="examples"></div>
-      <p class="fineprint" id="disclaimer">Facts-only. No investment advice. Answers are drawn from official public
-        sources and may not reflect the latest updates — please verify on the linked page. Mutual fund investments are
-        subject to market risks; read all scheme-related documents carefully.</p>
+      <p class="fineprint">Answers come from public sources and may not be up to date. Mutual fund investments are subject to market risks.</p>
     </div>
   </section>
   <div id="thread" aria-live="polite"></div>
@@ -314,7 +314,7 @@ function addTurn(question) {
   const loading = el("div", "bot loading");
   const head = el("div", "bot-head");
   const mark = icon("i-sparkle", 18); mark.classList.add("pulse");
-  head.append(mark, el("span", null, "Searching official sources…"));
+  head.append(mark, el("span", null, "Looking it up..."));
   const l1 = el("div", "shimmer"), l2 = el("div", "shimmer");
   l1.style.width = "82%"; l2.style.width = "56%";
   loading.append(head, l1, l2);
@@ -343,7 +343,7 @@ function renderBot(t, r, asked) {
   if (hasUrl || r.last_updated) {
     const meta = el("div", "meta");
     if (hasUrl) {
-      const line = el("div", null, "Source: ");
+      const line = el("div", null, (r.link_label || "Source") + ": ");
       const a = el("a", null, r.url.replace(/^https?:\/\//i, ""));
       a.href = r.url; a.target = "_blank"; a.rel = "noopener noreferrer";
       line.appendChild(a); meta.appendChild(line);
@@ -367,13 +367,15 @@ function renderBot(t, r, asked) {
   if (r.pills && r.pills.length) {
     const box = el("div", "opts");
     for (const p of r.pills) {
-      const b = el("button", "opt" + (p.kind === "secondary" ? " secondary" : ""));
+      const muted = p.kind === "secondary" || p.kind === "retry";
+      const b = el("button", "opt" + (muted ? " secondary" : "") + (p.kind === "retry" ? " retry" : ""));
       b.type = "button";
-      if (p.message === asked) { b.classList.add("selected"); b.appendChild(icon("i-check", 14)); }   // the pill just asked
-      else if (p.kind === "secondary") b.appendChild(icon("i-refresh", 14));
+      if (muted) b.appendChild(icon("i-refresh", 14));                       // Change fund / Retry
+      else if (p.message === asked) { b.classList.add("selected"); b.appendChild(icon("i-check", 14)); }   // the pill just asked
       b.appendChild(el("span", null, p.label));
       b.title = p.label;
-      b.addEventListener("click", () => { if (!b.disabled) ask(p.message); });
+      // a pill carries its action (and fund / fact): the server routes it without classification
+      b.addEventListener("click", () => { if (!b.disabled) ask(p.message, p.retry || (p.action ? p : null)); });
       box.appendChild(b);
     }
     bot.appendChild(box);
@@ -390,37 +392,58 @@ function setBusy(on) {
   for (const b of thread.querySelectorAll(".opt:not(.stale)")) b.disabled = on;
 }
 
-async function ask(question) {
+const REQUEST_TIMEOUT_MS = 20000;
+let epoch = 0;              // bumped by every request and by "+ New"; a reply from an older epoch is dropped
+let pending = null;         // AbortController of the request in flight
+
+async function ask(question, pill = null) {
   question = (question || "").trim();
   if (!question || busy) return;
   input.value = "";
   if (!finePointer()) input.blur();                 // touch: close the keyboard so the answer is readable
   setBusy(true);
+  const my = ++epoch;
+  const controller = new AbortController();
+  pending = controller;
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const t = addTurn(question);
   try {
     const res = await fetch("/api/chat", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: question, state }),
+      body: JSON.stringify({ message: question, state,
+                             pill: pill ? { action: pill.action, fund: pill.fund, fact: pill.fact } : null }),
+      signal: controller.signal,
     });
-    const r = await res.json();
+    const r = await res.json().catch(() => null);
+    if (my !== epoch) return;                                   // "+ New" was pressed meanwhile
+    if (!res.ok || !r || typeof r.text !== "string") throw new Error("bad response " + res.status);
     if (r.state) state = r.state;
     renderBot(t, r, question);
   } catch (e) {
-    renderBot(t, { question, text: "Sorry, the assistant is unavailable right now. Please try again.",
-                   label: "Error", pills: lastPills }, question);   // keep the last choices usable
+    if (my !== epoch) return;                                   // cancelled by "+ New": show nothing
+    renderBot(t, { question, text: "Something went wrong. Please try again.",
+                   pills: [{ label: "Retry", message: question, kind: "retry", retry: pill }] }, question);
   } finally {
-    setBusy(false);
-    if (finePointer()) input.focus({ preventScroll: true });
+    clearTimeout(timer);
+    if (my === epoch) {
+      pending = null;
+      setBusy(false);
+      if (finePointer()) input.focus({ preventScroll: true });
+    }
   }
 }
 
 input.addEventListener("input", () => { btn.disabled = busy || !input.value.trim(); });
 $("ask-form").addEventListener("submit", (e) => { e.preventDefault(); ask(input.value); });
+// "+ New" always works: cancel the request in flight, then reset everything to the empty state
 $("new").addEventListener("click", () => {
-  if (busy) return;
+  epoch++;
+  if (pending) pending.abort();
+  pending = null;
   thread.replaceChildren(); $("empty").hidden = false;
   state = { fund: null }; lastPills = [];
-  input.value = ""; btn.disabled = true;
+  input.value = "";
+  setBusy(false);
   window.scrollTo({ top: 0 });
 });
 
@@ -437,7 +460,6 @@ fetch("/api/config").then((r) => r.json()).then((cfg) => {
     box.appendChild(b);
   }
   if (cfg.welcome) $("welcome").textContent = cfg.welcome;
-  if (cfg.disclaimer) $("disclaimer").textContent = cfg.disclaimer;
 }).catch(() => {});
 </script>
 </body>
