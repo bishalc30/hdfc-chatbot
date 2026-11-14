@@ -31,7 +31,7 @@ INTENT_LABEL = {
 from PIL import Image  # noqa: E402
 
 # Fully transparent 1x1 PNG, so no icon shows in the browser tab
-st.set_page_config(page_title="HDFC MF Facts Assistant", page_icon=Image.open(ROOT / "app" / "blank.png"),
+st.set_page_config(page_title="Groww Mutual Fund Facts", page_icon=Image.open(ROOT / "app" / "blank.png"),
                    layout="centered", initial_sidebar_state="collapsed")
 CFG = get_config()
 SHOW_DEBUG = bool(CFG["ui"].get("show_debug", False))
@@ -231,7 +231,7 @@ def pipeline_status() -> None:
 # ---------------------------------------------------------------- page
 st.markdown(CSS, unsafe_allow_html=True)
 
-st.markdown('<div class="app-title">HDFC Mutual Fund Facts Assistant</div>', unsafe_allow_html=True)
+st.markdown('<div class="app-title">Groww Mutual Fund Facts</div>', unsafe_allow_html=True)
 st.markdown('<div class="app-sub">Ask factual questions about HDFC Mutual Fund schemes, such as expense ratio, '
             'exit load, minimum SIP, lock-in, riskometer, benchmark, fund manager and statements.</div>',
             unsafe_allow_html=True)

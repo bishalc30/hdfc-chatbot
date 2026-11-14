@@ -1,4 +1,4 @@
-"""Vercel serverless API (FastAPI) for the HDFC MF Facts Assistant.
+"""Vercel serverless API (FastAPI) for Groww Mutual Fund Facts.
 
   GET  /api/config  -> welcome line, example questions, disclaimer, badge text
   POST /api/ask     -> {"question": "..."} -> answer card data
@@ -44,7 +44,7 @@ INTENT_LABEL = {
     "error": "Error",
 }
 
-app = FastAPI(title="HDFC MF Facts Assistant API", docs_url=None, redoc_url=None)
+app = FastAPI(title="Groww Mutual Fund Facts API", docs_url=None, redoc_url=None)
 allowed = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
 if allowed:
     app.add_middleware(CORSMiddleware, allow_origins=allowed, allow_methods=["GET", "POST"],

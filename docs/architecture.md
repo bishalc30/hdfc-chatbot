@@ -1,4 +1,4 @@
-# Architecture: Mutual Fund FAQ Assistant (RAG Demo)
+# Architecture: Groww Mutual Fund Facts (RAG Demo)
 
 | Field | Value |
 |---|---|
@@ -323,7 +323,7 @@ PII patterns (in `guardrails/pii.py`):
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  HDFC Mutual Fund FAQ Assistant                          │
+│  Groww Mutual Fund Facts                                 │
 │  Hi! Ask me factual questions about HDFC MF schemes.     │
 │  ⚠ Facts-only. No investment advice.                    │
 │                                                          │

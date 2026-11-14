@@ -1,4 +1,4 @@
-# Implementation Plan: Mutual Fund FAQ Assistant (RAG Demo)
+# Implementation Plan: Groww Mutual Fund Facts (RAG Demo)
 
 Based on `docs/architecture.md` and `docs/PRD.md`. Build the steps in order. Each step saves its output under `data/` so it can be shown in the demo.
 
@@ -434,7 +434,7 @@ You are a facts-only mutual fund FAQ assistant.
 ### Layout
 ```
 ┌───────────────────────────────────────────────┐
-│ HDFC Mutual Fund FAQ Assistant                │
+│ Groww Mutual Fund Facts                       │
 │ Hi! Ask factual questions about HDFC schemes. │
 │ ⚠ Facts-only. No investment advice.          │
 │ [Example 1] [Example 2] [Example 3]           │
@@ -452,7 +452,7 @@ You are a facts-only mutual fund FAQ assistant.
 import streamlit as st
 from src.answerer import answer   # returns dict: text, url, last_updated, trace, intent
 
-st.title("HDFC Mutual Fund FAQ Assistant")
+st.title("Groww Mutual Fund Facts")
 st.write("Hi! Ask me factual questions about HDFC Mutual Fund schemes.")
 st.info("Facts-only. No investment advice.")
 

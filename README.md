@@ -1,4 +1,4 @@
-# HDFC Mutual Fund FAQ Assistant (RAG Demo)
+# Groww Mutual Fund Facts (RAG Demo)
 
 A facts-only FAQ assistant for HDFC Mutual Fund schemes, built as a step-by-step RAG demo.
 See `docs/PRD.md`, `docs/architecture.md` and `docs/implementation.md`.

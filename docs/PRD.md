@@ -1,8 +1,8 @@
-# PRD: Mutual Fund FAQ Assistant (RAG Demo)
+# PRD: Groww Mutual Fund Facts (RAG Demo)
 
 | Field | Value |
 |---|---|
-| Product | Facts-only Mutual Fund FAQ Assistant |
+| Product | Groww Mutual Fund Facts |
 | Source | `docs/problemstatement.txt` |
 | Scope | HDFC Mutual Fund (AMC) + 4 schemes, sourced from Groww public pages |
 | Status | Draft v1.0 |
